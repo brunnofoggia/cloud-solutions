@@ -1,0 +1,22 @@
+version: "3.2"
+
+# list of containers to be run
+services:
+
+  # rabbit_mq container uses the default rabbitmq image
+  # exposes the ports
+  # uses the specified volume
+  rabbit_mq:
+
+    # we use management image to get the
+    # plugin for web dashboard
+    image: rabbitmq:3.11.9-management
+    container_name: rabbit_mq
+    ports:
+        - '5672:5672'
+        - '15672:15672'
+    volumes:
+      - rabbit_mqdata:/usr/share/rabbitmq/data
+volumes:
+    rabbit_mqdata:
+      driver: local
