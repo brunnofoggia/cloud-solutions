@@ -55,15 +55,15 @@ export class SolutionsFactory {
         return this._solutions;
     }
 
-    get(solutionType: string): Solution {
+    get(solutionType: string) {
         return this._solutions[solutionType];
     }
 
-    find(solutionType: string, solutionName: string): Solution {
+    find(solutionType: string, solutionName: string) {
         return adapters[solutionType] && adapters[solutionType][solutionName];
     }
 
-    static find(solutionType: string, solutionName: string): Solution {
+    static find(solutionType: string, solutionName: string) {
         return adapters[solutionType] && adapters[solutionType][solutionName];
     }
 }
