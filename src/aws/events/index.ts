@@ -57,21 +57,25 @@ export class SQS extends Events implements EventsInterface {
 
     async loadQueue(_name, _handler) {
         const events = this.getInstance();
-        this.queueUrls[_name] = await this.createQueue(_name);
-        await this.queueSubscribe(this.queueUrls[_name]);
 
-        const params = {
-            ...this.options.params,
-            QueueUrl: this.queueUrls[_name],
-        };
+        const names = typeof _name === 'string' ? [_name] : _name;
+        for (const _name of names) {
+            this.queueUrls[_name] = await this.createQueue(_name);
+            await this.queueSubscribe(this.queueUrls[_name]);
 
-        events.receiveMessage(params, (err, data) => {
-            if (err) {
-                debug(err, err.stack);
-            } else {
-                this.receiveMessage(_name, _handler, data.Messages[0], { events: this });
-            }
-        });
+            const params = {
+                ...this.options.params,
+                QueueUrl: this.queueUrls[_name],
+            };
+
+            events.receiveMessage(params, (err, data) => {
+                if (err) {
+                    debug(err, err.stack);
+                } else {
+                    this.receiveMessage(_name, _handler, data.Messages[0], { events: this });
+                }
+            });
+        }
     }
 
     async receiveMessage(name, handler, message, options) {
