@@ -4,12 +4,22 @@ import { createInterface } from 'readline';
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum.js';
 import { StorageInterface } from '../../common/interfaces/storage.interface.js';
 import { Storage } from '../../common/abstract/storage.js';
+import _ from 'lodash';
 
 export class S3 extends Storage implements StorageInterface {
-    protected options: any = {};
+    protected instance;
+
+    getInstance() {
+        if (!this.instance) {
+            this.instance = new AWS.S3({
+                ..._.pick(this.options, 'accessKeyId', 'secretAccessKey', 'region')
+            });
+        }
+        return this.instance;
+    }
 
     async readContent(path, options: any = {}) {
-        const s3 = new AWS.S3();
+        const s3 = this.getInstance();
 
         const s3Params = {
             ...this.getOptions(),
@@ -23,7 +33,7 @@ export class S3 extends Storage implements StorageInterface {
     }
 
     async readStream(path, options: any = {}) {
-        const s3 = new AWS.S3();
+        const s3 = this.getInstance();
 
         const s3Params = {
             ...this.getOptions(),
@@ -41,7 +51,7 @@ export class S3 extends Storage implements StorageInterface {
     }
 
     async _sendContent(path, content, options: any = {}) {
-        const s3 = new AWS.S3();
+        const s3 = this.getInstance();
 
         // Configura as opções do upload
         const uploadOptions = {
@@ -67,7 +77,7 @@ export class S3 extends Storage implements StorageInterface {
     }
 
     async deleteDirectory(directoryName, options: any = {}) {
-        const s3 = new AWS.S3();
+        const s3 = this.getInstance();
 
         const objects = await s3.listObjectsV2({
             ...this.getOptions(),

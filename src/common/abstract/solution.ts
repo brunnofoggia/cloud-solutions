@@ -12,6 +12,10 @@ export abstract class Solution {
         };
     }
 
+    checkOptions() {
+        return true;
+    }
+
     async initialize(options: any = {}) {
         this.setOptions(options);
     }

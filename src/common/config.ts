@@ -16,6 +16,8 @@ adapters[SolutionEnum.SECRETS][ProviderEnum.AWS] = Aws.SecretsAdapter;
 adapters[SolutionEnum.SECRETS][Aws.SolutionsEnum.SECRETS] = Aws.SecretsAdapter;
 adapters[SolutionEnum.STORAGE][ProviderEnum.AWS] = Aws.StorageAdapter;
 adapters[SolutionEnum.STORAGE][Aws.SolutionsEnum.STORAGE] = Aws.StorageAdapter;
+adapters[SolutionEnum.EVENTS][ProviderEnum.AWS] = Aws.EventsAdapter;
+adapters[SolutionEnum.EVENTS][Aws.SolutionsEnum.EVENTS] = Aws.EventsAdapter;
 
 // LOCAL
 adapters[SolutionEnum.PROVIDERCONFIG][ProviderEnum.LOCAL] = Local.providerConfig;

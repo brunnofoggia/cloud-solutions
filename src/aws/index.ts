@@ -2,10 +2,12 @@ import aws from 'aws-sdk';
 
 import { ParameterStore } from './secrets/index.js';
 import { S3 } from './storage/index.js';
+import { SQS } from './events/index.js';
 import { SolutionsEnum } from './solutions.js';
 
 export const StorageAdapter = S3;
 export const SecretsAdapter = ParameterStore;
+export const EventsAdapter = SQS;
 
 export const providerConfig = (options: any = {}) => {
     if (options.region &&
@@ -21,4 +23,4 @@ export const providerConfig = (options: any = {}) => {
     }
 };
 
-export default { StorageAdapter, SecretsAdapter, SolutionsEnum, providerConfig };
+export default { StorageAdapter, SecretsAdapter, EventsAdapter, SolutionsEnum, providerConfig };

@@ -1,7 +1,7 @@
 import { Solution } from './solution.js';
 
 export abstract class Events extends Solution {
-    protected defaultOptions: any = {
+    public defaultOptions: any = {
         retryInterval: 5000,
     };
 

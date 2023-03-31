@@ -1,10 +1,11 @@
 import amqplib from 'amqplib';
 import _debug from 'debug';
+const debug = _debug('app:solutions:events');
+
 import { sleep } from '../common/utils/index.js';
 import { EventsInterface } from '../common/interfaces/events.interface.js';
 import { Events } from '../common/abstract/events.js';
 
-const debug = _debug('app:solutions:events');
 
 export class RabbitMQ extends Events implements EventsInterface {
     private connection = null;
@@ -91,13 +92,13 @@ export class RabbitMQ extends Events implements EventsInterface {
         this._reconnecting = false;
     }
 
-    loadQueue(_name, _handler) {
+    async loadQueue(_name, _handler) {
         const names = typeof _name === 'string' ? [_name] : _name;
         for (const _name of names) {
             this.channel.assertQueue(_name, { durable: true, persistent: true });
 
             this.channel.consume(_name, async data => {
-                try { await handler(this, _name, _handler, data, this.channel); }
+                try { await this.receiveMessage(_name, _handler, data, { events: this, channel: this.channel }); }
                 catch (error) { console.error(error, { name: _name, content: data.content }); }
             });
         }
@@ -122,29 +123,37 @@ export class RabbitMQ extends Events implements EventsInterface {
         if (!this.channel) return false;
         await this.channel.close();
     }
-}
 
-const handler = async function (events, queueName, queueFn, message, channel) {
-    const body = JSON.parse(message.content);
-    debug(`@${process.pid} Executing Queue ${queueName}`);
+    async receiveMessage(name, handler, message, options) {
+        const body = JSON.parse(message.content);
+        debug(`@${process.pid} Executing Queue ${name}`);
 
-    try {
-        const result = await queueFn(body, {
-            events,
-            queueName
-        });
-        if (result !== false)
-            return channel.ack(message);
-    }
-    catch (error) {
-        channel.nack(message);
-        debug(`@${process.pid} Error on Queue:`);
-        debug(`Code: ${error.code}; Status: ${error.status}; Message: ${error.message}`);
-        if (events.getOptions().throwError) {
-            debug(`Trace:`);
-            throw error;
+        try {
+            const result = await handler(body, {
+                events: options.events,
+                name
+            });
+            if (result !== false)
+                return this.ack(message, options);
         }
-        return;
+        catch (error) {
+            this.nack(message, options);
+            debug(`@${process.pid} Error on Queue:`);
+            debug(`Code: ${error.code}; Status: ${error.status}; Message: ${error.message}`);
+            if (options.events.getOptions().throwError) {
+                debug(`Trace:`);
+                throw error;
+            }
+            return;
+        }
+        this.nack(message, options);
     }
-    return channel.nack(message);
-};
+
+    ack(message, options) {
+        return options.channel.ack(message);
+    }
+
+    nack(message, options) {
+        options.channel.nack(message);
+    }
+}
