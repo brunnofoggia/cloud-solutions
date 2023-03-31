@@ -61,6 +61,8 @@ export class SQS extends Events implements EventsInterface {
         const names = typeof _name === 'string' ? [_name] : _name;
         for (const _name of names) {
             this.queueUrls[_name] = await this.createQueue(_name);
+            debug('loadQueue:queueUrl', this.queueUrls[_name]);
+
             await this.queueSubscribe(this.queueUrls[_name]);
 
             const params = {
@@ -68,9 +70,11 @@ export class SQS extends Events implements EventsInterface {
                 QueueUrl: this.queueUrls[_name],
             };
 
-            events.receiveMessage(params, (err, data) => {
-                if (err) {
-                    debug(err, err.stack);
+            events.receiveMessage(params, (error, data) => {
+                if (error) {
+                    debug('loadQueue:', error.message);
+                    if (this.options.throwError)
+                        throw error;
                 } else {
                     this.receiveMessage(_name, _handler, data.Messages[0], { events: this });
                 }
@@ -102,6 +106,27 @@ export class SQS extends Events implements EventsInterface {
         this.nack(name, message, options);
     }
 
+    _sendToQueue(_name, data) {
+        return new Promise((resolve, reject) => {
+            const params = {
+                MessageBody: data,
+                QueueUrl: this.queueUrls[_name]
+            };
+
+            const sqs = this.getInstance();
+            sqs.sendMessage(params, (error, data) => {
+                if (error) {
+                    debug('_sendToQueue:', 'Erro ao enviar mensagem para a fila:', error.message);
+                    if (this.options.throwError)
+                        throw error;
+                } else {
+                    debug('_sendToQueue:', 'Mensagem enviada com sucesso:', data.MessageId);
+                    resolve(true);
+                }
+            });
+        });
+    }
+
     ack(name, message, options) {
         // Deleta a mensagem da fila
         const deleteParams = {
@@ -110,7 +135,9 @@ export class SQS extends Events implements EventsInterface {
         };
         options.events.deleteMessage(deleteParams, function (error, data) {
             if (error) {
-                debug(error, error.stack);
+                debug('ack:', error.message);
+                if (this.options.throwError)
+                    throw error;
             } else {
                 debug(`Mensagem ${message.MessageId} deletada da fila`);
             }
@@ -126,9 +153,11 @@ export class SQS extends Events implements EventsInterface {
             VisibilityTimeout: 0,
         };
 
-        options.events.changeMessageVisibility(changeParams, function (err, data) {
-            if (err) {
-                debug('Erro ao alterar visibilidade da mensagem: ', err);
+        options.events.changeMessageVisibility(changeParams, (error, data) => {
+            if (error) {
+                debug('Erro ao alterar visibilidade da mensagem: ', error.message);
+                if (this.options.throwError)
+                    throw error;
             } else {
                 debug('Visibilidade da mensagem alterada: ', message.MessageId);
             }
@@ -140,7 +169,9 @@ export class SQS extends Events implements EventsInterface {
             const sns = this.getSNSInstance();
             sns.listTopics({}, (error, data) => {
                 if (error) {
-                    debug('Erro ao listar tópicos: ', error);
+                    debug('Erro ao listar tópicos: ', error.message);
+                    if (this.options.throwError)
+                        throw error;
                     // reject(error);
                     this.createTopicOnFail(name)
                         .then((topicArn) => resolve(topicArn));
@@ -155,7 +186,9 @@ export class SQS extends Events implements EventsInterface {
                     if (!topicExists) {
                         sns.createTopic({ Name: name }, (error, data) => {
                             if (error) {
-                                debug('Erro ao criar tópico: ', error);
+                                debug('Erro ao criar tópico: ', error.message);
+                                if (this.options.throwError)
+                                    throw error;
                                 // reject(error);
                                 this.createTopicOnFail(name)
                                     .then((topicArn) => resolve(topicArn));
@@ -185,7 +218,9 @@ export class SQS extends Events implements EventsInterface {
             const sqs = this.getInstance();
             sqs.listQueues({ QueueNamePrefix: name }, (error, data) => {
                 if (error) {
-                    debug(error);
+                    debug('createQueue:', error.message);
+                    if (this.options.throwError)
+                        throw error;
                     // reject(error);
                     this.createQueueOnFail(name)
                         .then((queueUrl) => resolve(queueUrl));
@@ -199,7 +234,9 @@ export class SQS extends Events implements EventsInterface {
                         // Se a fila não existe, cria uma nova fila
                         sqs.createQueue({ QueueName: name }, (error, data) => {
                             if (error) {
-                                debug(error);
+                                debug('createQueue:', error.message);
+                                if (this.options.throwError)
+                                    throw error;
                                 // reject(error);
                                 this.createQueueOnFail(name)
                                     .then((queueUrl) => resolve(queueUrl));
@@ -229,7 +266,9 @@ export class SQS extends Events implements EventsInterface {
                 Endpoint: queueUrl
             }, (error, data) => {
                 if (error) {
-                    debug(error);
+                    debug('queueSubscribe:', error.message);
+                    if (this.options.throwError)
+                        throw error;
                     // reject(error);
                     this.queueSubscribeOnFail(queueUrl)
                         .then((value) => resolve(value));

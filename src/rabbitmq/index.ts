@@ -104,7 +104,7 @@ export class RabbitMQ extends Events implements EventsInterface {
         }
     }
 
-    _sendToQueue(_name, data) {
+    async _sendToQueue(_name, data) {
         if (!this.channel) throw new Error(`@${process.pid} UNABLE TO SEND TO QUEUE ${_name}`);
         return this.channel.sendToQueue(_name, Buffer.from(JSON.stringify(data)), { persistent: true });
     }

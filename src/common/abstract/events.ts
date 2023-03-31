@@ -1,3 +1,4 @@
+import { sleep } from '../utils/index.js';
 import { Solution } from './solution.js';
 
 export abstract class Events extends Solution {
@@ -5,18 +6,19 @@ export abstract class Events extends Solution {
         retryInterval: 5000,
     };
 
-    sendToQueue(_name, data, retry = 10) {
+    async sendToQueue(_name, data, retry = 10) {
         try {
-            this._sendToQueue(_name, data);
-        } catch (err) {
+            await this._sendToQueue(_name, data);
+        } catch (error) {
             if (retry > 0) {
-                return setTimeout(() => this.sendToQueue(_name, data, --retry), this.options.retryInterval);
+                await sleep(this.options.retryInterval);
+                return await this.sendToQueue(_name, data, --retry);
             }
-            throw err;
+            throw error;
         }
     }
 
-    _sendToQueue(_name, data) {
+    async _sendToQueue(_name, data): Promise<any> {
         return { _name, data };
     }
 }
