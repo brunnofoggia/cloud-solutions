@@ -1,4 +1,4 @@
-export abstract class Solution {
+export class Solution {
     protected options: any = {};
     protected defaultOptions: any = {};
 

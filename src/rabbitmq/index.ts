@@ -95,18 +95,20 @@ export class RabbitMQ extends Events implements EventsInterface {
     async loadQueue(_name, _handler) {
         const names = typeof _name === 'string' ? [_name] : _name;
         for (const _name of names) {
-            this.channel.assertQueue(_name, { durable: true, persistent: true });
+            const name = this.formatQueueName(_name);
+            this.channel.assertQueue(name, { durable: true, persistent: true });
 
-            this.channel.consume(_name, async data => {
-                try { await this.receiveMessage(_name, _handler, data, { events: this, channel: this.channel }); }
-                catch (error) { console.error(error, { name: _name, content: data.content }); }
+            this.channel.consume(name, async data => {
+                try { await this.receiveMessage(name, _handler, data, { events: this, channel: this.channel }); }
+                catch (error) { console.error(error, { name, content: data.content }); }
             });
         }
     }
 
     async _sendToQueue(_name, data) {
-        if (!this.channel) throw new Error(`@${process.pid} UNABLE TO SEND TO QUEUE ${_name}`);
-        return this.channel.sendToQueue(_name, Buffer.from(JSON.stringify(data)), { persistent: true });
+        const name = this.formatQueueName(_name);
+        if (!this.channel) throw new Error(`@${process.pid} UNABLE TO SEND TO QUEUE ${name}`);
+        return this.channel.sendToQueue(name, Buffer.from(JSON.stringify(data)), { persistent: true });
     }
 
     async close() {
@@ -124,36 +126,11 @@ export class RabbitMQ extends Events implements EventsInterface {
         await this.channel.close();
     }
 
-    async receiveMessage(name, handler, message, options) {
-        const body = JSON.parse(message.content);
-        debug(`@${process.pid} Executing Queue ${name}`);
-
-        try {
-            const result = await handler(body, {
-                events: options.events,
-                name
-            });
-            if (result !== false)
-                return this.ack(message, options);
-        }
-        catch (error) {
-            this.nack(message, options);
-            debug(`@${process.pid} Error on Queue:`);
-            debug(`Code: ${error.code}; Status: ${error.status}; Message: ${error.message}`);
-            if (options.events.getOptions().throwError) {
-                debug(`Trace:`);
-                throw error;
-            }
-            return;
-        }
-        this.nack(message, options);
-    }
-
-    ack(message, options) {
+    ack(name, message, options) {
         return options.channel.ack(message);
     }
 
-    nack(message, options) {
+    nack(name, message, options) {
         options.channel.nack(message);
     }
 }
