@@ -1,0 +1,134 @@
+trigger: none
+pr:
+- main
+
+stages:
+  - stage: Build_Nodejs
+    pool:
+      vmImage: "ubuntu-latest"
+    jobs:
+      - job: Nodejs_19
+        displayName: "Build version Nodejs 19"
+        workspace:
+          clean: all
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: "19.x"
+            displayName: "Install Node.js"
+          - script: |
+              export NPM_USER=$(NPM_USER)
+              export NPM_PASSWORD=$(NPM_PASSWORD)
+              export NPM_EMAIL=$(NPM_EMAIL)
+            displayName: Copy dist contents
+          - task: Npm@1
+            inputs:
+              command: "install"
+            displayName: "Npm Install"
+          - task: Npm@1
+            inputs:
+              command: custom
+              customCommand: "run build"
+            displayName: "Build npm"
+
+      - job: Nodejs_16
+        displayName: "Build version Nodejs 18"
+        workspace:
+          clean: all
+        steps:
+          - script: |
+              export NPM_USER=$(NPM_USER)
+              export NPM_PASSWORD=$(NPM_PASSWORD)
+              export NPM_EMAIL=$(NPM_EMAIL)
+            displayName: Environment
+          - task: NodeTool@0
+            inputs:
+              versionSpec: "18.x"
+            displayName: "Install Node.js"
+          - task: Npm@1
+            inputs:
+              command: "install"
+            displayName: "Npm Install"
+          - task: Npm@1
+            inputs:
+              command: custom
+              customCommand: "run build"
+            displayName: "Build npm"
+      - job: Nodejs_14
+        displayName: "Build version Nodejs 16"
+        workspace:
+          clean: all
+        steps:
+          - script: |
+              export NPM_USER=$(NPM_USER)
+              export NPM_PASSWORD=$(NPM_PASSWORD)
+              export NPM_EMAIL=$(NPM_EMAIL)
+            displayName: Environment
+          - task: NodeTool@0
+            inputs:
+              versionSpec: "16.x"
+            displayName: "Install Node.js"
+          - task: Npm@1
+            inputs:
+              command: "install"
+            displayName: "Npm Install"
+          - task: Npm@1
+            inputs:
+              command: custom
+              customCommand: "run build"
+            displayName: "Build npm"
+
+      - job: sonar_scan
+        displayName: "Scanner sonar"
+        workspace:
+          clean: all
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: "18.x"
+          - task: Npm@1
+            inputs:
+              command: "install"
+            displayName: "Npm Install"
+
+          - task: SonarQubePrepare@5
+            displayName: 'Prepare analysis on SonarQube'
+            inputs:
+              SonarQube: SonarCloud
+              scannerMode: CLI
+              configMode: manual
+              cliProjectKey: $(SONAR_PROJECT_KEY)
+              extraProperties: |
+                sonar.organization=$(SONAR_ORGANIZATION)
+                sonar.exclusions=test/**/*
+                sonar.test.inclusions=test/**/*
+                sonar.qualitygate.wait=true
+                sonar.qualitygate.timeout=300
+          - task: SonarQubeAnalyze@5
+            displayName: 'Run Code Analysis'
+          - task: SonarQubePublish@5
+            displayName: 'Publish Quality Gate Result'
+
+      - job: Security_scan
+        displayName: "Security Scan Snyk"
+        workspace:
+          clean: all
+        steps:
+          - script: |
+              export NPM_USER=$(NPM_USER)
+              export NPM_PASSWORD=$(NPM_PASSWORD)
+              export NPM_EMAIL=$(NPM_EMAIL)
+            displayName: Environment
+          - task: NodeTool@0
+            inputs:
+              versionSpec: "18.x"
+            displayName: "Install Node.js"
+          - task: Npm@1
+            inputs:
+              command: "install"
+            displayName: "Npm Install"
+          - script: |
+              npm install -g snyk
+              snyk config set api=$(SNYK_TOKEN) --org=bauk
+              snyk monitor --org=bauk
+            displayName: Instal SnykSecurity

@@ -1,0 +1,45 @@
+trigger:
+  tags:
+    include:
+    - 'refs/tags/v*'
+
+stages:
+  - stage: Build
+    pool:
+      vmImage: "ubuntu-22.04"
+    jobs:
+      - job: Build
+        displayName: "Build publish"
+        workspace:
+          clean: all
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: "18.x"
+            displayName: "Install Node.js"
+
+          - task: Npm@1
+            inputs:
+              command: "install"
+            displayName: "Npm Install"
+
+          - task: Npm@1
+            inputs:
+              command: custom
+              customCommand: "run build"
+            displayName: "Build npm"
+
+          - script: |
+              mkdir $(Build.ArtifactStagingDirectory)/dist
+              rm -rf node_modules/
+              cat package.json
+              mv .npmrc $(Build.ArtifactStagingDirectory)/dist
+              mv * $(Build.ArtifactStagingDirectory)/dist
+            displayName: Copy dist contents
+
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: $(Build.ArtifactStagingDirectory)/dist
+              artifactName: "drop"
+              artifactType: "pipeline"
+            displayName: "Publish Artifact"
