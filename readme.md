@@ -11,7 +11,7 @@ This project is meant to ease the pain of migrating from one solution to another
         * Secrets
 
     * Factories available
-        * Events: RabbitMQ
+        * Events: AWS.SQS, RabbitMQ
         * Storage: AWS.S3, Local.FS
         * Secrets: AWS.ParameterStore, Local.Env
 
