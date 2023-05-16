@@ -4,10 +4,10 @@ import { getSecretValue, getParamValue } from './functions/paramStore.js';
 
 export class ParameterStore extends Secrets implements SecretsInterface {
     async getSecretValue(path: string) {
-        return await getSecretValue(path);
+        return super.get(path, async (path) => await getSecretValue(path));
     }
 
     async getValue(path: string) {
-        return await getParamValue(path);
+        return super.get(path, async (path) => await getParamValue(path));
     }
 }
