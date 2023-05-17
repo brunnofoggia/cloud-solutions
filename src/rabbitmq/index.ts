@@ -48,6 +48,7 @@ export class RabbitMQ extends Events implements EventsInterface {
     private async createChannel() {
         try {
             this.channel = await this.connection.createChannel();
+            this.channel.prefetch(1);
             this.channel.once("close", async () => {
                 debug(`@${process.pid} RABBITMQ CHANNEL CLOSED. RETRYING TO CREATE CHANNEL ON RABBITMQ... ${new Date}`);
                 this.reconnect();
