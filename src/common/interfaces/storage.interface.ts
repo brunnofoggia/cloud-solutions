@@ -1,8 +1,9 @@
 export interface StorageInterface {
     initialize(options: any);
-    readContent(path);
-    readStream(path);
-    _sendContent(path, content);
-    sendContent(path, content, retry?);
-    deleteDirectory(directoryName);
+    readContent(path, options?);
+    readStream(path, options?);
+    _sendContent(path, content, options?);
+    sendContent(path, content, options?, retry?);
+    deleteDirectory(directoryName, options?);
+    readDirectory(directoryName, options?);
 }

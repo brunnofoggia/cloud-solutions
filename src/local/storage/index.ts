@@ -17,12 +17,12 @@ export class Fs extends Storage implements StorageInterface {
     };
 
     async readContent(filePath, options: any = {}) {
-        const _path = path.join(this.options.basePath, filePath);
+        const _path = path.join(options.basePath || this.options.basePath, filePath);
         return await fs.readFile(_path, 'utf8');
     }
 
     async readStream(filePath, options: any = {}) {
-        const _path = path.join(this.options.basePath, filePath);
+        const _path = path.join(options.basePath || this.options.basePath, filePath);
         const data = createReadStream(_path);
         const rl = createInterface({
             input: data,
@@ -41,7 +41,7 @@ export class Fs extends Storage implements StorageInterface {
 
     async _sendContent(filePath, content, options: any = {}) {
         try {
-            const _path = path.join(this.options.basePath, filePath);
+            const _path = path.join(options.basePath || this.options.basePath, filePath);
 
             this.createDirIfNotExists(_path);
             await fs.writeFile(_path, content);
@@ -56,7 +56,7 @@ export class Fs extends Storage implements StorageInterface {
     }
 
     async deleteDirectory(directoryPath, options: any = {}) {
-        const _path = path.join(this.options.basePath, directoryPath);
+        const _path = path.join(options.basePath || this.options.basePath, directoryPath);
         try {
             await fs.rm(_path, { recursive: true, force: true });
             debug(`O diretório ${_path} foi excluído com sucesso!`);
@@ -67,4 +67,17 @@ export class Fs extends Storage implements StorageInterface {
 
         return StorageOutputEnum.Success;
     }
+
+    async readDirectory(directoryPath, options: any = {}) {
+        const _path = path.join(options.basePath || this.options.basePath, directoryPath);
+        try {
+            const objects = await fs.readdir(_path);
+            return objects;
+        } catch (error) {
+            debug(`Erro ao ler o diretório ${_path}`, error);
+            return null;
+        }
+    }
+
+
 }

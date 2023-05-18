@@ -76,13 +76,13 @@ export class S3 extends Storage implements StorageInterface {
         }
     }
 
-    async deleteDirectory(directoryName, options: any = {}) {
+    async deleteDirectory(directoryPath, options: any = {}) {
         const s3 = this.getInstance();
 
         const objects = await s3.listObjectsV2({
             ...this.getOptions(),
             ...options,
-            Prefix: directoryName
+            Prefix: directoryPath
         }).promise();
 
         if (objects.Contents.length === 0) {
@@ -97,13 +97,24 @@ export class S3 extends Storage implements StorageInterface {
         await s3.deleteObjects(deleteParams).promise();
 
         if (objects.IsTruncated) {
-            await this.deleteDirectory(directoryName);
+            await this.deleteDirectory(directoryPath);
         } else {
             await s3.deleteObject({
                 ...this.getOptions(),
-                Key: directoryName
+                Key: directoryPath
             }).promise();
         }
         return StorageOutputEnum.Success;
+    }
+
+    async readDirectory(directoryPath, options: any = {}) {
+        const s3 = this.getInstance();
+        const objects = await s3.listObjectsV2({
+            ...this.getOptions(),
+            ...options,
+            Prefix: directoryPath
+        }).promise();
+
+        return objects?.Contents;
     }
 }
