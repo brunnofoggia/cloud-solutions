@@ -1,11 +1,10 @@
+import _ from 'lodash';
 import AWS from 'aws-sdk';
 import { createInterface } from 'readline';
-import { omit } from 'lodash';
 
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum.js';
 import { StorageInterface } from '../../common/interfaces/storage.interface.js';
 import { Storage } from '../../common/abstract/storage.js';
-import _ from 'lodash';
 import { providerConfig, keyFields } from '../index.js';
 
 export class S3 extends Storage implements StorageInterface {
@@ -46,7 +45,7 @@ export class S3 extends Storage implements StorageInterface {
         };
 
         const data = await s3.getObject(s3Params).promise();
-        return data;
+        return data?.Body.toString(options.charset || 'utf-8');
 
     }
 
@@ -77,7 +76,7 @@ export class S3 extends Storage implements StorageInterface {
             Key: path,
             Body: typeof content === 'string' ? Buffer.from(content) : content,
             ACL: 'private',
-            ...omit(params, 'options'),
+            ..._.omit(params, 'options', ...keyFields),
         };
 
         await s3.upload(uploadParams, params.options || {}).promise();
