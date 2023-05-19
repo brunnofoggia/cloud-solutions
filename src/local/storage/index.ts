@@ -9,7 +9,7 @@ import { StorageOutputEnum } from '../../common/types/storageOutput.enum.js';
 import { StorageInterface } from '../../common/interfaces/storage.interface.js';
 import { Storage } from '../../common/abstract/storage.js';
 
-const debug = _debug('app:solutions:storage');
+const debug = _debug('solutions:storage');
 
 export class Fs extends Storage implements StorageInterface {
     protected defaultOptions: any = {

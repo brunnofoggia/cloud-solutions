@@ -1,6 +1,6 @@
 
 import _debug from 'debug';
-const debug = _debug('app:solutions:events');
+const debug = _debug('solutions:events');
 
 import { sleep } from '../utils/index.js';
 import { Solution } from './solution.js';

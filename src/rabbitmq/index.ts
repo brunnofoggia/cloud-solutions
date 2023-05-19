@@ -1,6 +1,6 @@
 import amqplib from 'amqplib';
 import _debug from 'debug';
-const debug = _debug('app:solutions:events');
+const debug = _debug('solutions:events');
 
 import { sleep } from '../common/utils/index.js';
 import { EventsInterface } from '../common/interfaces/events.interface.js';

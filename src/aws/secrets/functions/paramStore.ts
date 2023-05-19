@@ -1,4 +1,3 @@
-import SecretBaker from 'serverless-secret-baker';
 import { serverless } from './secretBakerServerless.js';
 import { decryptSecretData } from './kms.js';
 
@@ -8,6 +7,8 @@ export const getSecretValue = async (path) => {
     if (param?.Value && param?.ARN) {
         const data = await decryptSecretData(param.Value, param.ARN);
         return data;
+    } else {
+        throw new Error(`secret not found "${path}"`);
     }
 };
 
@@ -16,8 +17,20 @@ export const getParamValue = async (path) => {
     return param?.Value;
 };
 
-export const getParam = async (path) => {
+export const getParam = async (path): Promise<any> => {
     serverless.setKeys({ key: path });
-    const secretBaker = new SecretBaker(serverless);
-    return await secretBaker.getParameterFromSsm(path);
+    return await getParameterFromSsm(path);
+};
+
+export const getParameterFromSsm = async (name) => {
+    return (await serverless
+        .getProvider("aws")
+        .request(
+            "SSM",
+            "getParameter",
+            {
+                Name: name,
+                WithDecryption: false
+            }
+        )).Parameter;
 };
