@@ -9,6 +9,8 @@ export const StorageAdapter = S3;
 export const SecretsAdapter = ParameterStore;
 export const EventsAdapter = SQS;
 
+export const keyFields = ['accessKeyId', 'secretAccessKey', 'region'];
+
 export const providerConfig = (options: any = {}) => {
     if (options.region &&
         options.accessKeyId &&

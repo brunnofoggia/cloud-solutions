@@ -28,7 +28,7 @@ export class SolutionsFactory {
                 await adapter(this.providerOptions);
                 this._solutions[solutionType] = adapter;
             } else {
-                const instance = new adapter;
+                const instance = new adapter(this.providerOptions);
                 this._solutions[solutionType] = instance;
             }
         }

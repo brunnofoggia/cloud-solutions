@@ -1,25 +1,43 @@
 import AWS from 'aws-sdk';
 import { createInterface } from 'readline';
+import { omit } from 'lodash';
 
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum.js';
 import { StorageInterface } from '../../common/interfaces/storage.interface.js';
 import { Storage } from '../../common/abstract/storage.js';
 import _ from 'lodash';
+import { providerConfig, keyFields } from '../index.js';
 
 export class S3 extends Storage implements StorageInterface {
     protected instance;
 
-    getInstance() {
-        if (!this.instance) {
-            this.instance = new AWS.S3({
-                ..._.pick(this.options, 'accessKeyId', 'secretAccessKey', 'region')
-            });
+    async initialize(options: any = {}) {
+        super.initialize(options);
+        this.instance = this.createInstance(options);
+    }
+
+    getInstance(options: any = {}) {
+        if (_.intersection(_.keys(options), keyFields).length > 0) {
+            const instance = this.createInstance(options);
+            providerConfig(_.pick(this.providerOptions, ...keyFields));
+            return instance;
         }
         return this.instance;
     }
 
+    createInstance(options: any = {}) {
+        providerConfig(_.defaults(
+            _.pick(options, ...keyFields),
+            _.pick(this.providerOptions, ...keyFields),
+        ));
+
+        const instance = new AWS.S3({});
+
+        return instance;
+    }
+
     async readContent(path, options: any = {}) {
-        const s3 = this.getInstance();
+        const s3 = this.getInstance(options);
 
         const s3Params = {
             ...this.getOptions(),
@@ -33,11 +51,11 @@ export class S3 extends Storage implements StorageInterface {
     }
 
     async readStream(path, options: any = {}) {
-        const s3 = this.getInstance();
+        const s3 = this.getInstance(options);
 
         const s3Params = {
             ...this.getOptions(),
-            ...options,
+            ..._.omit(options, ...keyFields),
             Key: path,
         };
 
@@ -50,39 +68,39 @@ export class S3 extends Storage implements StorageInterface {
         return rl;
     }
 
-    async _sendContent(path, content, options: any = {}) {
-        const s3 = this.getInstance();
+    async _sendContent(path, content, params: any = {}) {
+        const s3 = this.getInstance(params);
 
         // Configura as opções do upload
-        const uploadOptions = {
+        const uploadParams = {
             ...this.getOptions(),
-            ...options,
             Key: path,
             Body: typeof content === 'string' ? Buffer.from(content) : content,
-            ACL: 'private'
+            ACL: 'private',
+            ...omit(params, 'options'),
         };
 
-        await s3.upload(uploadOptions).promise();
+        await s3.upload(uploadParams, params.options || {}).promise();
     }
 
-    async sendContent(path, content, options: any = {}, retry = 3) {
+    async sendContent(path, content, params: any = {}, retry = 3) {
         try {
-            await this._sendContent(path, content, options);
+            await this._sendContent(path, content, params);
         } catch (err) {
             if (retry) {
-                return await this.sendContent(path, content, options, retry - 1);
+                return await this.sendContent(path, content, params, retry - 1);
             }
             throw err;
         }
     }
 
     async deleteDirectory(directoryPath, options: any = {}) {
-        const s3 = this.getInstance();
+        const s3 = this.getInstance(options);
 
         const objects = await s3.listObjectsV2({
             ...this.getOptions(),
+            Prefix: directoryPath,
             ...options,
-            Prefix: directoryPath
         }).promise();
 
         if (objects.Contents.length === 0) {
@@ -101,18 +119,18 @@ export class S3 extends Storage implements StorageInterface {
         } else {
             await s3.deleteObject({
                 ...this.getOptions(),
-                Key: directoryPath
+                Key: directoryPath,
             }).promise();
         }
         return StorageOutputEnum.Success;
     }
 
     async readDirectory(directoryPath, options: any = {}) {
-        const s3 = this.getInstance();
+        const s3 = this.getInstance(options);
         const objects = await s3.listObjectsV2({
             ...this.getOptions(),
+            Prefix: directoryPath,
             ...options,
-            Prefix: directoryPath
         }).promise();
 
         return objects?.Contents;
