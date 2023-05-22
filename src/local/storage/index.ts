@@ -9,7 +9,7 @@ import { StorageOutputEnum } from '../../common/types/storageOutput.enum.js';
 import { StorageInterface } from '../../common/interfaces/storage.interface.js';
 import { Storage } from '../../common/abstract/storage.js';
 
-const debug = _debug('solutions:storage');
+const debug = _debug('solutions:storage:fs');
 
 export class Fs extends Storage implements StorageInterface {
     protected defaultOptions: any = {
@@ -17,11 +17,13 @@ export class Fs extends Storage implements StorageInterface {
     };
 
     async readContent(filePath, options: any = {}) {
+        this.isInitialized();
         const _path = path.join(options.basePath || this.options.basePath, filePath);
         return await fs.readFile(_path, 'utf8');
     }
 
     async readStream(filePath, options: any = {}) {
+        this.isInitialized();
         const _path = path.join(options.basePath || this.options.basePath, filePath);
         const data = createReadStream(_path);
         const rl = createInterface({
@@ -40,8 +42,10 @@ export class Fs extends Storage implements StorageInterface {
     }
 
     async _sendContent(filePath, content, options: any = {}) {
+        this.isInitialized();
+        let _path;
         try {
-            const _path = path.join(options.basePath || this.options.basePath, filePath);
+            _path = path.join(options.basePath || this.options.basePath, filePath);
 
             this.createDirIfNotExists(_path);
             await fs.writeFile(_path, content);
@@ -56,8 +60,10 @@ export class Fs extends Storage implements StorageInterface {
     }
 
     async deleteDirectory(directoryPath, options: any = {}) {
-        const _path = path.join(options.basePath || this.options.basePath, directoryPath);
+        this.isInitialized();
+        let _path;
         try {
+            _path = path.join(options.basePath || this.options.basePath, directoryPath);
             await fs.rm(_path, { recursive: true, force: true });
             debug(`O diretório ${_path} foi excluído com sucesso!`);
         } catch (error) {
@@ -69,8 +75,10 @@ export class Fs extends Storage implements StorageInterface {
     }
 
     async readDirectory(directoryPath, options: any = {}) {
-        const _path = path.join(options.basePath || this.options.basePath, directoryPath);
+        this.isInitialized();
+        let _path;
         try {
+            _path = path.join(options.basePath || this.options.basePath, directoryPath);
             const objects = await fs.readdir(_path);
             return objects;
         } catch (error) {

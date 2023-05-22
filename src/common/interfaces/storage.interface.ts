@@ -1,5 +1,5 @@
 export interface StorageInterface {
-    initialize(options: any);
+    initialize(options?: any);
     readContent(path, options?);
     readStream(path, options?);
     _sendContent(path, content, options?);

@@ -1,5 +1,5 @@
 export interface SecretsInterface {
-    initialize(options: any);
+    initialize(options?: any);
     getSecretValue(path);
     getValue(path);
 }

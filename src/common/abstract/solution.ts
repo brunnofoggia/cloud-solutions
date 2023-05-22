@@ -23,5 +23,11 @@ export class Solution {
 
     async initialize(options: any = {}) {
         this.setOptions(options);
+        this.options.initialized = true;
+    }
+
+    isInitialized() {
+        if (!this.options.initialized)
+            throw new Error('Nao se esqueça de executar o método "initialized" de cada solução da fábrica');
     }
 }
