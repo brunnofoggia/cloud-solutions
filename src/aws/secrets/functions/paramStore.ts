@@ -23,14 +23,19 @@ export const getParam = async (path): Promise<any> => {
 };
 
 export const getParameterFromSsm = async (name) => {
-    return (await serverless
-        .getProvider("aws")
-        .request(
-            "SSM",
-            "getParameter",
-            {
-                Name: name,
-                WithDecryption: false
-            }
-        )).Parameter;
+    try {
+        return (await serverless
+            .getProvider("aws")
+            .request(
+                "SSM",
+                "getParameter",
+                {
+                    Name: name,
+                    WithDecryption: false
+                }
+            )).Parameter;
+    } catch (error) {
+        error.message = `"${name}": ${error.message}`;
+        throw error;
+    }
 };
