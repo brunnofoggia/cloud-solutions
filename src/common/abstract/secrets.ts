@@ -1,7 +1,7 @@
 import { Solution } from './solution.js';
 
 export abstract class Secrets extends Solution {
-    protected defaultOptions: any = {
+    public defaultOptions: any = {
         cache: true
     };
     protected static cache: any = {};
