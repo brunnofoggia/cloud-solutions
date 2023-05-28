@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 export class Solution {
     protected providerOptions: any = {};
     protected options: any = {};
@@ -12,9 +14,9 @@ export class Solution {
     }
 
     getOptions() {
-        return {
+        return _.omit({
             ...this.options,
-        };
+        }, 'initialized');
     }
 
     checkOptions() {
