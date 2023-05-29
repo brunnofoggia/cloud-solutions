@@ -19,9 +19,9 @@ export class ParameterStore extends Secrets implements SecretsInterface {
     }
 
     getInstance(options: any = {}) {
-        if (_.intersection(_.keys(options), keyFields).length > 0) {
+        if (_.intersection(_.keys(options), _.keys(keyFields)).length > 0) {
             const instance = this.createInstance(options);
-            providerConfig(_.pick(this.providerOptions, ...keyFields));
+            providerConfig(_.pick(this.providerOptions, ..._.keys(keyFields)));
             return instance;
         }
         return this.instance;
@@ -29,8 +29,8 @@ export class ParameterStore extends Secrets implements SecretsInterface {
 
     createInstance(options: any = {}) {
         providerConfig(_.defaults(
-            _.pick(options, ...keyFields),
-            _.pick(this.providerOptions, ...keyFields),
+            _.pick(options, ..._.keys(keyFields)),
+            _.pick(this.providerOptions, ..._.keys(keyFields)),
         ));
 
         const instance = new AWS.SSM({});

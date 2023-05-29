@@ -6,6 +6,7 @@ const debug = _debug('solutions:events');
 import { sleep } from '../../common/utils/index.js';
 import { EventsInterface } from '../../common/interfaces/events.interface.js';
 import { Events } from '../../common/abstract/events.js';
+import { keyFields, providerConfig } from '../index.js';
 
 export class SQS extends Events implements EventsInterface {
     public defaultOptions: any = {
@@ -22,22 +23,56 @@ export class SQS extends Events implements EventsInterface {
     protected instance;
     protected snsInstance;
 
-    getInstance() {
-        if (!this.instance) {
-            this.instance = new AWS.SQS({
-                ..._.pick(this.options, 'accessKeyId', 'secretAccessKey', 'region')
-            });
+    async initialize(options: any = {}) {
+        super.initialize(options);
+        this.checkOptions();
+
+        this.instance = this.createInstance(options);
+        this.snsInstance = this.createSNSInstance(options);
+
+        this.options.topicArn = await this.createTopic(this.options.topicName);
+        this.options.loadQueues && (await this.options.loadQueues(this));
+        // this._reconnecting = false;
+    }
+
+    getInstance(options: any = {}) {
+        if (_.intersection(_.keys(options), _.keys(keyFields)).length > 0) {
+            const instance = this.createInstance(options);
+            providerConfig(_.pick(this.providerOptions, ..._.keys(keyFields)));
+            return instance;
         }
         return this.instance;
     }
 
-    getSNSInstance() {
-        if (!this.snsInstance) {
-            this.snsInstance = new AWS.SNS({
-                ..._.pick(this.options, 'accessKeyId', 'secretAccessKey', 'region')
-            });
+    createInstance(options: any = {}) {
+        providerConfig(_.defaults(
+            _.pick(options, ..._.keys(keyFields)),
+            _.pick(this.providerOptions, ..._.keys(keyFields)),
+        ));
+
+        const instance = new AWS.SQS({});
+
+        return instance;
+    }
+
+    getSNSInstance(options: any = {}) {
+        if (_.intersection(_.keys(options), _.keys(keyFields)).length > 0) {
+            const instance = this.createSNSInstance(options);
+            providerConfig(_.pick(this.providerOptions, ..._.keys(keyFields)));
+            return instance;
         }
         return this.snsInstance;
+    }
+
+    createSNSInstance(options: any = {}) {
+        providerConfig(_.defaults(
+            _.pick(options, ..._.keys(keyFields)),
+            _.pick(this.providerOptions, ..._.keys(keyFields)),
+        ));
+
+        const instance = new AWS.SNS({});
+
+        return instance;
     }
 
     checkOptions() {
@@ -45,15 +80,6 @@ export class SQS extends Events implements EventsInterface {
             throw new Error('topic name not specified for events (SNS/SQS)');
         }
         return true;
-    }
-
-    async initialize(options: any = {}) {
-        this.setOptions(options);
-        this.checkOptions();
-
-        this.options.topicArn = await this.createTopic(this.options.topicName);
-        this.options.loadQueues && (await this.options.loadQueues(this));
-        // this._reconnecting = false;
     }
 
     async loadQueue(_name, _handler) {

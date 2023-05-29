@@ -16,9 +16,9 @@ export class S3 extends Storage implements StorageInterface {
     }
 
     getInstance(options: any = {}) {
-        if (_.intersection(_.keys(options), keyFields).length > 0) {
+        if (_.intersection(_.keys(options), _.keys(keyFields)).length > 0) {
             const instance = this.createInstance(options);
-            providerConfig(_.pick(this.providerOptions, ...keyFields));
+            providerConfig(_.pick(this.providerOptions, ..._.keys(keyFields)));
             return instance;
         }
         return this.instance;
@@ -26,8 +26,8 @@ export class S3 extends Storage implements StorageInterface {
 
     createInstance(options: any = {}) {
         providerConfig(_.defaults(
-            _.pick(options, ...keyFields),
-            _.pick(this.providerOptions, ...keyFields),
+            _.pick(options, ..._.keys(keyFields)),
+            _.pick(this.providerOptions, ..._.keys(keyFields)),
         ));
 
         const instance = new AWS.S3({});
@@ -36,6 +36,7 @@ export class S3 extends Storage implements StorageInterface {
     }
 
     async readContent(path, options: any = {}) {
+        this.isInitialized();
         const s3 = this.getInstance(options);
 
         const s3Params = {
@@ -50,11 +51,12 @@ export class S3 extends Storage implements StorageInterface {
     }
 
     async readStream(path, options: any = {}) {
+        this.isInitialized();
         const s3 = this.getInstance(options);
 
         const s3Params = {
             ...this.getOptions(),
-            ..._.omit(options, ...keyFields),
+            ..._.omit(options, ..._.keys(keyFields)),
             Key: path,
         };
 
@@ -68,6 +70,7 @@ export class S3 extends Storage implements StorageInterface {
     }
 
     async _sendContent(path, content, params: any = {}) {
+        this.isInitialized();
         const s3 = this.getInstance(params);
 
         // Configura as opções do upload
@@ -76,7 +79,7 @@ export class S3 extends Storage implements StorageInterface {
             Key: path,
             Body: typeof content === 'string' ? Buffer.from(content) : content,
             ACL: 'private',
-            ..._.omit(params, 'options', ...keyFields),
+            ..._.omit(params, 'options', ..._.keys(keyFields)),
         };
 
         await s3.upload(uploadParams, params.options || {}).promise();
@@ -94,6 +97,7 @@ export class S3 extends Storage implements StorageInterface {
     }
 
     async deleteDirectory(directoryPath, options: any = {}) {
+        this.isInitialized();
         const s3 = this.getInstance(options);
 
         const objects = await s3.listObjectsV2({
@@ -125,6 +129,7 @@ export class S3 extends Storage implements StorageInterface {
     }
 
     async readDirectory(directoryPath, options: any = {}) {
+        this.isInitialized();
         const s3 = this.getInstance(options);
         const objects = await s3.listObjectsV2({
             ...this.getOptions(),
@@ -132,6 +137,11 @@ export class S3 extends Storage implements StorageInterface {
             ...options,
         }).promise();
 
-        return objects?.Contents;
+        return _.map(objects?.Contents, (item) => item.Key);
+    }
+
+    async checkDirectoryExists(directoryPath, options: any = {}) {
+        const objects = await this.readDirectory(directoryPath, options);
+        return objects?.length > 0;
     }
 }

@@ -9,16 +9,25 @@ export const StorageAdapter = S3;
 export const SecretsAdapter = ParameterStore;
 export const EventsAdapter = SQS;
 
-export const keyFields = ['accessKeyId', 'secretAccessKey', 'region'];
+// export const keyFields = ['accessKeyId', 'secretAccessKey', 'region'];
+export const keyFields = { user: 'accessKeyId', pass: 'secretAccessKey', region: 'region' };
+
+/*
+{
+    region: options.region,
+    accessKeyId: options.accessKeyId,
+    secretAccessKey: options.secretAccessKey,
+}
+ */
 
 export const providerConfig = (options: any = {}) => {
     if (options.region &&
-        options.accessKeyId &&
-        options.secretAccessKey) {
+        options.user &&
+        options.pass) {
         const _config = {
             region: options.region,
-            accessKeyId: options.accessKeyId,
-            secretAccessKey: options.secretAccessKey,
+            accessKeyId: options.user,
+            secretAccessKey: options.pass,
         };
         aws.config.update(_config);
         aws.config.region = _config.region;
