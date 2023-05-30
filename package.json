@@ -1,6 +1,6 @@
 {
     "name": "cloud_solutions_factory",
-    "version": "1.9.0",
+    "version": "1.10.0",
     "description": "",
     "license": "ISC",
     "main": "dist/index.js",
@@ -37,6 +37,7 @@
         "typescript": "^4.9.5"
     },
     "dependencies": {
+        "@google-cloud/storage": "^6.10.1",
         "@types/lodash": "^4.14.191",
         "amqplib": "^0.10.3",
         "aws-sdk": "^2.1366.0",

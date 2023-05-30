@@ -1,4 +1,5 @@
 import Aws from '../aws/index.js';
+import Gcp from '../gcp/index.js';
 import Local from '../local/index.js';
 import { RabbitMQ } from '../rabbitmq/index.js';
 import { SolutionEnum } from './types/solution.enum.js';
@@ -18,6 +19,15 @@ adapters[SolutionEnum.STORAGE][ProviderEnum.AWS] = Aws.StorageAdapter;
 adapters[SolutionEnum.STORAGE][Aws.SolutionsEnum.STORAGE] = Aws.StorageAdapter;
 adapters[SolutionEnum.EVENTS][ProviderEnum.AWS] = Aws.EventsAdapter;
 adapters[SolutionEnum.EVENTS][Aws.SolutionsEnum.EVENTS] = Aws.EventsAdapter;
+
+// GCP
+adapters[SolutionEnum.PROVIDERCONFIG][ProviderEnum.GCP] = Gcp.providerConfig;
+// adapters[SolutionEnum.SECRETS][ProviderEnum.GCP] = Gcp.SecretsAdapter;
+// adapters[SolutionEnum.SECRETS][Gcp.SolutionsEnum.SECRETS] = Gcp.SecretsAdapter;
+adapters[SolutionEnum.STORAGE][ProviderEnum.GCP] = Gcp.StorageAdapter;
+adapters[SolutionEnum.STORAGE][Gcp.SolutionsEnum.STORAGE] = Gcp.StorageAdapter;
+// adapters[SolutionEnum.EVENTS][ProviderEnum.GCP] = Gcp.EventsAdapter;
+// adapters[SolutionEnum.EVENTS][Gcp.SolutionsEnum.EVENTS] = Gcp.EventsAdapter;
 
 // LOCAL
 adapters[SolutionEnum.PROVIDERCONFIG][ProviderEnum.LOCAL] = Local.providerConfig;

@@ -12,6 +12,7 @@ export class S3 extends Storage implements StorageInterface {
 
     async initialize(options: any = {}) {
         super.initialize(options);
+        this.checkOptions();
         this.instance = this.createInstance(options);
     }
 
@@ -37,30 +38,30 @@ export class S3 extends Storage implements StorageInterface {
 
     async readContent(path, options: any = {}) {
         this.isInitialized();
-        const s3 = this.getInstance(options);
+        const storage = this.getInstance(options);
 
-        const s3Params = {
+        const storageParams = {
             ...this.getOptions(),
-            ...options,
+            ..._.omit(options, ..._.keys(keyFields)),
             Key: path,
         };
 
-        const data = await s3.getObject(s3Params).promise();
+        const data = await storage.getObject(storageParams).promise();
         return data?.Body.toString(options.charset || 'utf-8');
 
     }
 
     async readStream(path, options: any = {}) {
         this.isInitialized();
-        const s3 = this.getInstance(options);
+        const storage = this.getInstance(options);
 
-        const s3Params = {
+        const storageParams = {
             ...this.getOptions(),
             ..._.omit(options, ..._.keys(keyFields)),
             Key: path,
         };
 
-        const data = s3.getObject(s3Params).createReadStream();
+        const data = storage.getObject(storageParams).createReadStream();
         const rl = createInterface({
             input: data,
             crlfDelay: Infinity
@@ -71,7 +72,7 @@ export class S3 extends Storage implements StorageInterface {
 
     async _sendContent(path, content, params: any = {}) {
         this.isInitialized();
-        const s3 = this.getInstance(params);
+        const storage = this.getInstance(params);
 
         // Configura as opções do upload
         const uploadParams = {
@@ -82,45 +83,30 @@ export class S3 extends Storage implements StorageInterface {
             ..._.omit(params, 'options', ..._.keys(keyFields)),
         };
 
-        await s3.upload(uploadParams, params.options || {}).promise();
-    }
-
-    async sendContent(path, content, params: any = {}, retry = 3) {
-        try {
-            await this._sendContent(path, content, params);
-        } catch (err) {
-            if (retry) {
-                return await this.sendContent(path, content, params, retry - 1);
-            }
-            throw err;
-        }
+        await storage.upload(uploadParams, params.options || {}).promise();
     }
 
     async deleteDirectory(directoryPath, options: any = {}) {
         this.isInitialized();
-        const s3 = this.getInstance(options);
+        const storage = this.getInstance(options);
 
-        const objects = await s3.listObjectsV2({
+        const objects = await storage.listObjectsV2({
             ...this.getOptions(),
             Prefix: directoryPath,
             ...options,
         }).promise();
-
-        if (objects.Contents.length === 0) {
-            return StorageOutputEnum.DirectoryNotFound;
-        }
 
         const deleteParams = {
             ...this.getOptions(),
             Delete: { Objects: objects.Contents.map(({ Key }) => ({ Key })) },
         };
 
-        await s3.deleteObjects(deleteParams).promise();
+        await storage.deleteObjects(deleteParams).promise();
 
         if (objects.IsTruncated) {
             await this.deleteDirectory(directoryPath);
         } else {
-            await s3.deleteObject({
+            await storage.deleteObject({
                 ...this.getOptions(),
                 Key: directoryPath,
             }).promise();
@@ -130,8 +116,8 @@ export class S3 extends Storage implements StorageInterface {
 
     async readDirectory(directoryPath, options: any = {}) {
         this.isInitialized();
-        const s3 = this.getInstance(options);
-        const objects = await s3.listObjectsV2({
+        const storage = this.getInstance(options);
+        const objects = await storage.listObjectsV2({
             ...this.getOptions(),
             Prefix: directoryPath,
             ...options,
