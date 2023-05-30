@@ -58,7 +58,7 @@ export class SecretManager extends Secrets implements SecretsInterface {
         return path;
     }
 
-    async getSecretValue(path: string) {
+    async _getSecretValue(path: string) {
         const name = this.buildPath(path);
         const secrets = this.getInstance();
 
@@ -69,7 +69,11 @@ export class SecretManager extends Secrets implements SecretsInterface {
         return payload;
     }
 
+    async getSecretValue(path: string) {
+        return super.get(path, async (path) => await this._getSecretValue(path));
+    }
+
     async getValue(path: string) {
-        return this.getSecretValue(path);
+        return super.get(path, async (path) => await this._getSecretValue(path));
     }
 }

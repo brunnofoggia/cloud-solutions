@@ -8,11 +8,9 @@ export abstract class Secrets extends Solution {
 
     protected async get(path: string, fn: any) {
         if (this.options.cache) {
-            if (!Secrets.cache[path]) {
-                Secrets.cache[path] = await fn(path);
-            }
-            return Secrets.cache[path];
+            return Secrets.cache[path] || (Secrets.cache[path] = await fn(path));
         }
+
         return await fn(path);
     }
 

@@ -8,7 +8,7 @@ import { decryptSecretData } from './functions/kms.js';
 
 export class ParameterStore extends Secrets implements SecretsInterface {
     public defaultOptions: any = {
-        ...Secrets.prototype.defaultOptions,
+        cache: true,
         WithDecryption: true,
     };
     protected instance;
