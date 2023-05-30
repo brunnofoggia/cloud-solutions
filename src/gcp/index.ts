@@ -1,10 +1,10 @@
 import { Storage } from './storage/index.js';
-// import { XXX } from './secrets/index.js';
+import { SecretManager } from './secrets/index.js';
 // import { XXX } from './events/index.js';
 import { SolutionsEnum } from './solutions.js';
 
 export const StorageAdapter = Storage;
-// export const SecretsAdapter = XXX;
+export const SecretsAdapter = SecretManager;
 // export const EventsAdapter = XXX;
 
 export const keyFields = { user: 'client_email', pass: 'private_key', region: 'region' };
@@ -20,7 +20,7 @@ export const providerConfig = (options: any = {}): any => {
 
 export default {
     StorageAdapter,
-    // SecretsAdapter,
+    SecretsAdapter,
     // EventsAdapter,
     SolutionsEnum,
     providerConfig

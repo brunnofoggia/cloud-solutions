@@ -29,8 +29,6 @@ export class Storage extends AStorage implements StorageInterface {
             _.omitBy(_.pick(options, ..._.keys(keyFields)), (value) => !value),
             _.pick(this.providerOptions, ..._.keys(keyFields)),
         ));
-        console.log('config without empty opt', _.omitBy(_.pick(options, ..._.keys(keyFields)), (value) => !value));
-
 
         const instance = new GStorage({
             ...config
