@@ -25,10 +25,7 @@ export class Storage extends AStorage implements StorageInterface {
     }
 
     createInstance(options: any = {}) {
-        const config = providerConfig(_.defaults(
-            _.omitBy(_.pick(options, ..._.keys(keyFields)), (value) => !value),
-            _.pick(this.providerOptions, ..._.keys(keyFields)),
-        ));
+        const config = providerConfig(this.mergeProviderOptions(options, keyFields));
 
         const instance = new GStorage({
             ...config

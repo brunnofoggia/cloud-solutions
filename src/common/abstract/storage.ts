@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { Solution } from './solution.js';
 
 export abstract class Storage extends Solution {
@@ -21,5 +22,12 @@ export abstract class Storage extends Solution {
 
     async _sendContent(path, content, params: any = {}) {
         null;
+    }
+
+    mergeProviderOptions(options, keyFields) {
+        return _.defaults(
+            _.omitBy(_.pick(options, ..._.keys(keyFields)), (value) => !value),
+            _.pick(this.providerOptions, ..._.keys(keyFields)),
+        );
     }
 }

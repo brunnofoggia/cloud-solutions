@@ -21,17 +21,19 @@ export const keyFields = { user: 'accessKeyId', pass: 'secretAccessKey', region:
  */
 
 export const providerConfig = (options: any = {}) => {
-    if (options.region &&
-        options.user &&
-        options.pass) {
-        const _config = {
-            region: options.region,
-            accessKeyId: options.user,
-            secretAccessKey: options.pass,
-        };
-        aws.config.update(_config);
-        aws.config.region = _config.region;
+    if (!options.region ||
+        !options.user ||
+        !options.pass) {
+        throw new Error('Missing some data into cloud credentials. Received: ' + JSON.stringify(options));
     }
+
+    const _config = {
+        region: options.region,
+        accessKeyId: options.user,
+        secretAccessKey: options.pass,
+    };
+    aws.config.update(_config);
+    aws.config.region = _config.region;
 };
 
 export default { StorageAdapter, SecretsAdapter, EventsAdapter, SolutionsEnum, providerConfig };

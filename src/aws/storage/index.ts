@@ -26,10 +26,7 @@ export class S3 extends Storage implements StorageInterface {
     }
 
     createInstance(options: any = {}) {
-        providerConfig(_.defaults(
-            _.pick(options, ..._.keys(keyFields)),
-            _.pick(this.providerOptions, ..._.keys(keyFields)),
-        ));
+        providerConfig(this.mergeProviderOptions(options, keyFields));
 
         const instance = new AWS.S3({});
 
