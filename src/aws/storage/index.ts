@@ -6,6 +6,8 @@ import { StorageOutputEnum } from '../../common/types/storageOutput.enum.js';
 import { StorageInterface } from '../../common/interfaces/storage.interface.js';
 import { Storage } from '../../common/abstract/storage.js';
 import { providerConfig, keyFields } from '../index.js';
+import stream from 'stream';
+import { WriteStream } from './writeStream.js';
 
 export class S3 extends Storage implements StorageInterface {
     protected instance;
@@ -76,11 +78,34 @@ export class S3 extends Storage implements StorageInterface {
             ...this.getOptions(),
             Key: path,
             Body: typeof content === 'string' ? Buffer.from(content) : content,
-            ACL: 'private',
             ..._.omit(params, 'options', ..._.keys(keyFields)),
         };
 
         await storage.upload(uploadParams, params.options || {}).promise();
+    }
+
+    sendStream(path, params: any = {}) {
+        this.isInitialized();
+        const storage = this.getInstance(params);
+
+        const _stream = new stream.PassThrough();
+        // Configura as opções do upload
+        const uploadParams = {
+            ...this.getOptions(),
+            Key: path,
+            Body: _stream,
+            ..._.omit(params, 'options', ..._.keys(keyFields)),
+        };
+
+        const upload = storage.upload(uploadParams, {
+            queueSize: 4, // optional concurrency configuration
+            partSize: '5MB', // optional size of each part
+            leavePartsOnError: true, // optional manually handle dropped parts
+            ...(params.options || {}),
+
+        }).promise();
+
+        return new WriteStream(_stream, { upload });
     }
 
     async deleteDirectory(directoryPath, options: any = {}) {
