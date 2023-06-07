@@ -106,7 +106,10 @@ export class Storage extends AStorage implements StorageInterface {
 
         for (const subdirectory of subdirectories) {
             const subdirectoryPath = subdirectory.name;
-            const subdirectoryFilePaths = await this.readDirectory(subdirectoryPath, { ...options, directoryPath });
+            const subdirectoryFilePaths = await this.readDirectory(subdirectoryPath, {
+                ...options,
+                directoryPath: options.directoryPath || directoryPath
+            });
             filePaths = filePaths.concat(subdirectoryFilePaths);
         }
 
