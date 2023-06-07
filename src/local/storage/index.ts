@@ -74,7 +74,7 @@ export class Fs extends Storage implements StorageInterface {
         return StorageOutputEnum.Success;
     }
 
-    async readDirectory(directoryPath, options: any = {}) {
+    async readDirectory(directoryPath = '', options: any = {}) {
         this.isInitialized();
         let _path;
         try {
@@ -87,7 +87,7 @@ export class Fs extends Storage implements StorageInterface {
         }
     }
 
-    async checkDirectoryExists(directoryPath, options: any = {}) {
+    async checkDirectoryExists(directoryPath = '', options: any = {}) {
         const objects = await this.readDirectory(directoryPath, options);
         return objects?.length > 0;
     }

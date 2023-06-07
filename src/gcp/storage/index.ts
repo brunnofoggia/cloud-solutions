@@ -84,20 +84,25 @@ export class Storage extends AStorage implements StorageInterface {
         return StorageOutputEnum.Success;
     }
 
-    async readDirectory(directoryPath, options: any = {}) {
+    async readDirectory(directoryPath = '', options: any = {}) {
         this.isInitialized();
         const storage = this.getInstance(options);
         const Bucket = options.Bucket || this.getOptions().Bucket;
 
+        const fileOptions: any = {};
+        directoryPath && (fileOptions.prefix = directoryPath);
         const [files] = await storage.bucket(Bucket).getFiles({ prefix: directoryPath });
 
         let filePaths = [];
         for (const file of files) {
+            // remove basepath from filepath
             const filePath = file.name.replace(`gs://${Bucket}/${options.directoryPath || directoryPath}`, '');
             filePaths.push(filePath);
         }
 
-        const [subdirectories] = await storage.bucket(Bucket).getFiles({ prefix: directoryPath, delimiter: '/' });
+        const subdirectoriesOptions: any = { delimiter: '/' };
+        directoryPath && (subdirectoriesOptions.prefix = directoryPath);
+        const [subdirectories] = await storage.bucket(Bucket).getFiles(subdirectoriesOptions);
 
         for (const subdirectory of subdirectories) {
             const subdirectoryPath = subdirectory.name;
@@ -108,7 +113,7 @@ export class Storage extends AStorage implements StorageInterface {
         return filePaths;
     }
 
-    async checkDirectoryExists(directoryPath, options: any = {}) {
+    async checkDirectoryExists(directoryPath = '', options: any = {}) {
         const objects = await this.readDirectory(directoryPath, options);
         return objects?.length > 0;
     }

@@ -136,19 +136,22 @@ export class S3 extends Storage implements StorageInterface {
         return StorageOutputEnum.Success;
     }
 
-    async readDirectory(directoryPath, options: any = {}) {
+    async readDirectory(directoryPath = '', _options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(options);
-        const objects = await storage.listObjectsV2({
+        const storage = this.getInstance(_options);
+
+        const options: any = {
             ...this.getOptions(),
-            Prefix: directoryPath,
-            ...options,
-        }).promise();
+            ..._.omit(_options, ..._.keys(keyFields)),
+        };
+        directoryPath && (options.Prefix = directoryPath);
+
+        const objects = await storage.listObjectsV2(options).promise();
 
         return _.map(objects?.Contents, (item) => item.Key);
     }
 
-    async checkDirectoryExists(directoryPath, options: any = {}) {
+    async checkDirectoryExists(directoryPath = '', options: any = {}) {
         const objects = await this.readDirectory(directoryPath, options);
         return objects?.length > 0;
     }
