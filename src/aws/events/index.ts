@@ -14,7 +14,6 @@ export class SQS extends Events implements EventsInterface {
         listenInterval: 1000,
         params: {
             AttributeNames: ['All'],
-            MaxNumberOfMessages: 1,
             VisibilityTimeout: 120, // em segundos
             WaitTimeSeconds: 0,
         },
@@ -94,13 +93,22 @@ export class SQS extends Events implements EventsInterface {
         }
     }
 
-    async listener(_name, _handler) {
-        const sqs = this.getInstance();
-
-        const params = {
+    buildListenerParams(_name) {
+        const params: any = {
             ...this.options.params,
             QueueUrl: this.queueUrls[_name],
         };
+
+        if (this.options.maxNumberOfMessages)
+            params.MaxNumberOfMessages = this.options.maxNumberOfMessages;
+
+        return params;
+    }
+
+    async listener(_name, _handler) {
+        const sqs = this.getInstance();
+
+        const params = this.buildListenerParams(_name);
 
         sqs.receiveMessage(params, (error, data) => {
             if (error) {

@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { defaultsDeep, omit } from 'lodash';
 
 export class Solution {
     protected providerOptions: any = {};
@@ -10,11 +10,11 @@ export class Solution {
     }
 
     setOptions(options: any = {}) {
-        this.options = { ...this.defaultOptions, ...options };
+        this.options = defaultsDeep({}, options, this.defaultOptions);
     }
 
     getOptions() {
-        return _.omit({
+        return omit({
             ...this.options,
         }, 'initialized');
     }

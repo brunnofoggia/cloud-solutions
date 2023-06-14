@@ -5,9 +5,10 @@ import { createReadStream, existsSync, mkdirSync } from 'fs';
 
 import _debug from 'debug';
 
-import { StorageOutputEnum } from '../../common/types/storageOutput.enum.js';
-import { StorageInterface } from '../../common/interfaces/storage.interface.js';
-import { Storage } from '../../common/abstract/storage.js';
+import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
+import { StorageInterface } from '../../common/interfaces/storage.interface';
+import { Storage } from '../../common/abstract/storage';
+import { WriteStream } from './writeStream';
 
 const debug = _debug('solutions:storage:fs');
 
@@ -82,14 +83,28 @@ export class Fs extends Storage implements StorageInterface {
             const objects = await fs.readdir(_path);
             return objects;
         } catch (error) {
-            debug(`Erro ao ler o diretório ${_path}`, error);
+            if (!options.silent)
+                debug(`Erro ao ler o diretório ${_path}`, error);
             return null;
         }
     }
 
     async checkDirectoryExists(directoryPath = '', options: any = {}) {
-        const objects = await this.readDirectory(directoryPath, options);
-        return objects?.length > 0;
+        let objects = null;
+
+        try {
+            objects = await this.readDirectory(directoryPath, { options, silent: 1 });
+            return objects?.length > 0;
+        } catch (error) {
+            return 0;
+        }
+    }
+
+    sendStream(path, params: any = {}) {
+        this.isInitialized();
+        const upload = async (content) => await this._sendContent(path, content, params);
+
+        return new WriteStream(upload);
     }
 
 

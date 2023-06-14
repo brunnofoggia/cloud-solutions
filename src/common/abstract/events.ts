@@ -8,10 +8,12 @@ import { Solution } from './solution.js';
 export abstract class Events extends Solution {
     public defaultOptions: any = {
         retryInterval: 5000,
+        maxNumberOfMessages: 1,
     };
 
     async sendToQueue(_name, data, retry = 10) {
         try {
+            !data && (data = {});
             await this._sendToQueue(_name, data);
         } catch (error) {
             if (retry > 0) {
