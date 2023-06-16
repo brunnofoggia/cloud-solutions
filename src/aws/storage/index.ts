@@ -2,12 +2,12 @@ import _ from 'lodash';
 import AWS from 'aws-sdk';
 import { createInterface } from 'readline';
 
-import { StorageOutputEnum } from '../../common/types/storageOutput.enum.js';
-import { StorageInterface } from '../../common/interfaces/storage.interface.js';
-import { Storage } from '../../common/abstract/storage.js';
-import { providerConfig, keyFields } from '../index.js';
+import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
+import { StorageInterface } from '../../common/interfaces/storage.interface';
+import { Storage } from '../../common/abstract/storage';
+import { providerConfig, keyFields } from '../index';
 import stream from 'stream';
-import { WriteStream } from './writeStream.js';
+import { WriteStream } from './writeStream';
 
 export class S3 extends Storage implements StorageInterface {
     protected instance;

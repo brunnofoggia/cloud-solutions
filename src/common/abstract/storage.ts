@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Solution } from './solution.js';
+import { Solution } from './solution';
 
 export abstract class Storage extends Solution {
     checkOptions() {

@@ -1,5 +1,5 @@
-import { Secrets } from '../../common/abstract/secrets.js';
-import { SecretsInterface } from '../../common/interfaces/secrets.interface.js';
+import { Secrets } from '../../common/abstract/secrets';
+import { SecretsInterface } from '../../common/interfaces/secrets.interface';
 
 export class Env extends Secrets implements SecretsInterface {
     formatPath(path) {

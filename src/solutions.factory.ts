@@ -1,6 +1,6 @@
-import { SolutionsInterface, SolutionsMapInterface } from './common/interfaces/solutions.interface.js';
-import { adapters } from './common/config.js';
-import { SolutionEnum } from './common/types/solution.enum.js';
+import { SolutionsInterface, SolutionsMapInterface } from './common/interfaces/solutions.interface';
+import { adapters } from './common/config';
+import { SolutionEnum } from './common/types/solution.enum';
 
 export class SolutionsFactory {
     private providerOptions: any = {};

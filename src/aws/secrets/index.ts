@@ -1,10 +1,10 @@
 import AWS from 'aws-sdk';
 import _ from 'lodash';
 
-import { Secrets } from '../../common/abstract/secrets.js';
-import { SecretsInterface } from '../../common/interfaces/secrets.interface.js';
-import { providerConfig, keyFields } from '../index.js';
-import { decryptSecretData } from './functions/kms.js';
+import { Secrets } from '../../common/abstract/secrets';
+import { SecretsInterface } from '../../common/interfaces/secrets.interface';
+import { providerConfig, keyFields } from '../index';
+import { decryptSecretData } from './functions/kms';
 
 export class ParameterStore extends Secrets implements SecretsInterface {
     public defaultOptions: any = {

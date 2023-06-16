@@ -1,9 +1,9 @@
 import _ from 'lodash';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 
-import { Secrets } from '../../common/abstract/secrets.js';
-import { SecretsInterface } from '../../common/interfaces/secrets.interface.js';
-import { keyFields, providerConfig } from '../index.js';
+import { Secrets } from '../../common/abstract/secrets';
+import { SecretsInterface } from '../../common/interfaces/secrets.interface';
+import { keyFields, providerConfig } from '../index';
 
 export class SecretManager extends Secrets implements SecretsInterface {
     protected instance;

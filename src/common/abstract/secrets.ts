@@ -1,4 +1,4 @@
-import { Solution } from './solution.js';
+import { Solution } from './solution';
 
 export abstract class Secrets extends Solution {
     public defaultOptions: any = {

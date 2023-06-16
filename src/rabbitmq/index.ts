@@ -2,9 +2,9 @@ import amqplib from 'amqplib';
 import _debug from 'debug';
 const debug = _debug('solutions:events');
 
-import { sleep } from '../common/utils/index.js';
-import { EventsInterface } from '../common/interfaces/events.interface.js';
-import { Events } from '../common/abstract/events.js';
+import { sleep } from '../common/utils/index';
+import { EventsInterface } from '../common/interfaces/events.interface';
+import { Events } from '../common/abstract/events';
 
 
 export class RabbitMQ extends Events implements EventsInterface {
@@ -48,7 +48,11 @@ export class RabbitMQ extends Events implements EventsInterface {
     private async createChannel() {
         try {
             this.channel = await this.connection.createChannel();
-            this.options.maxNumberOfMessages && this.channel.prefetch(this.options.maxNumberOfMessages);
+            if (this.options.maxNumberOfMessages) {
+                // this.channel.prefetch(+this.options.maxNumberOfMessages);
+                this.channel.qos(+this.options.maxNumberOfMessages, true);
+            }
+
             this.channel.once("close", async () => {
                 debug(`@${process.pid} RABBITMQ CHANNEL CLOSED. RETRYING TO CREATE CHANNEL ON RABBITMQ... ${new Date}`);
                 this.reconnect();

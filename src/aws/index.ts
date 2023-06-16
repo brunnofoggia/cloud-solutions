@@ -1,9 +1,9 @@
 import aws from 'aws-sdk';
 
-import { ParameterStore } from './secrets/index.js';
-import { S3 } from './storage/index.js';
-import { SQS } from './events/index.js';
-import { SolutionsEnum } from './solutions.js';
+import { ParameterStore } from './secrets/index';
+import { S3 } from './storage/index';
+import { SQS } from './events/index';
+import { SolutionsEnum } from './solutions';
 
 export const StorageAdapter = S3;
 export const SecretsAdapter = ParameterStore;

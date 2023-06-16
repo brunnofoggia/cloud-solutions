@@ -2,10 +2,10 @@ import _ from 'lodash';
 import { Storage as GStorage } from '@google-cloud/storage';
 import { createInterface } from 'readline';
 
-import { StorageOutputEnum } from '../../common/types/storageOutput.enum.js';
-import { StorageInterface } from '../../common/interfaces/storage.interface.js';
-import { Storage as AStorage } from '../../common/abstract/storage.js';
-import { providerConfig, keyFields } from '../index.js';
+import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
+import { StorageInterface } from '../../common/interfaces/storage.interface';
+import { Storage as AStorage } from '../../common/abstract/storage';
+import { providerConfig, keyFields } from '../index';
 
 export class Storage extends AStorage implements StorageInterface {
     protected instance;

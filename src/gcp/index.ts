@@ -1,7 +1,7 @@
-import { Storage } from './storage/index.js';
-import { SecretManager } from './secrets/index.js';
-// import { XXX } from './events/index.js';
-import { SolutionsEnum } from './solutions.js';
+import { Storage } from './storage/index';
+import { SecretManager } from './secrets/index';
+// import { XXX } from './events/index';
+import { SolutionsEnum } from './solutions';
 
 export const StorageAdapter = Storage;
 export const SecretsAdapter = SecretManager;

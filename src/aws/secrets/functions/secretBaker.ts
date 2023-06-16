@@ -1,8 +1,8 @@
 
 import fs from "fs";
 import path from "path";
-import { decryptSecretData } from './kms.js';
-import { serverless } from './secretBakerServerless.js';
+import { decryptSecretData } from './kms';
+import { serverless } from './secretBakerServerless';
 import SecretBaker from 'serverless-secret-baker';
 
 export const findSecretData = async function (secretName) {

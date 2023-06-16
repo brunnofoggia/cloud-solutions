@@ -1,5 +1,5 @@
-import { serverless } from './secretBakerServerless.js';
-import { decryptSecretData } from './kms.js';
+import { serverless } from './secretBakerServerless';
+import { decryptSecretData } from './kms';
 
 
 export const getSecretValue = async (path) => {

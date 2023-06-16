@@ -1,7 +1,7 @@
-import { Env } from './secrets/index.js';
-import { SolutionsEnum } from './solutions.js';
-import { Fs } from './storage/index.js';
-import { QueueMock } from './events/index.js';
+import { Env } from './secrets/index';
+import { SolutionsEnum } from './solutions';
+import { Fs } from './storage/index';
+import { QueueMock } from './events/index';
 
 export const SecretsAdapter = Env;
 export const StorageAdapter = Fs;

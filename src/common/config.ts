@@ -1,9 +1,9 @@
-import Aws from '../aws/index.js';
-import Gcp from '../gcp/index.js';
-import Local from '../local/index.js';
-import { RabbitMQ } from '../rabbitmq/index.js';
-import { SolutionEnum } from './types/solution.enum.js';
-import { ProviderEnum } from './types/provider.enum.js';
+import Aws from '../aws/index';
+import Gcp from '../gcp/index';
+import Local from '../local/index';
+import { RabbitMQ } from '../rabbitmq/index';
+import { SolutionEnum } from './types/solution.enum';
+import { ProviderEnum } from './types/provider.enum';
 
 const adapters: any = {};
 adapters[SolutionEnum.PROVIDERCONFIG] = {};

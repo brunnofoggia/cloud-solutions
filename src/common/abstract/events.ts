@@ -2,8 +2,8 @@
 import _debug from 'debug';
 const debug = _debug('solutions:events');
 
-import { sleep } from '../utils/index.js';
-import { Solution } from './solution.js';
+import { sleep } from '../utils/index';
+import { Solution } from './solution';
 
 export abstract class Events extends Solution {
     public defaultOptions: any = {

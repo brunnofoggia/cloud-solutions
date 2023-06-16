@@ -3,10 +3,10 @@ import _ from 'lodash';
 import _debug from 'debug';
 const debug = _debug('solutions:events');
 
-import { sleep } from '../../common/utils/index.js';
-import { EventsInterface } from '../../common/interfaces/events.interface.js';
-import { Events } from '../../common/abstract/events.js';
-import { keyFields, providerConfig } from '../index.js';
+import { sleep } from '../../common/utils/index';
+import { EventsInterface } from '../../common/interfaces/events.interface';
+import { Events } from '../../common/abstract/events';
+import { keyFields, providerConfig } from '../index';
 
 export class SQS extends Events implements EventsInterface {
     public defaultOptions: any = {
@@ -100,7 +100,7 @@ export class SQS extends Events implements EventsInterface {
         };
 
         if (this.options.maxNumberOfMessages)
-            params.MaxNumberOfMessages = this.options.maxNumberOfMessages;
+            params.MaxNumberOfMessages = +this.options.maxNumberOfMessages;
 
         return params;
     }
