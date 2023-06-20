@@ -5,6 +5,7 @@ export interface StorageInterface {
     sendStream?(path, options?);
     _sendContent(path, content, options?);
     sendContent(path, content, options?, retry?);
+    deleteFile(path, options?);
     deleteDirectory(directoryName, options?);
     readDirectory(directoryName?, options?);
     checkDirectoryExists(directoryName?, options?);

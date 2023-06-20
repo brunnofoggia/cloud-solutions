@@ -1,3 +1,6 @@
+import _debug from 'debug';
+const debug = _debug('solutions:storage:gcp');
+
 import _ from 'lodash';
 import { Storage as GStorage } from '@google-cloud/storage';
 import { createInterface } from 'readline';
@@ -28,7 +31,7 @@ export class Storage extends AStorage implements StorageInterface {
         const config = providerConfig(this.mergeProviderOptions(options, keyFields));
 
         const instance = new GStorage({
-            ...config
+            ...config,
         });
 
         return instance;
@@ -50,7 +53,7 @@ export class Storage extends AStorage implements StorageInterface {
         const data = storage.bucket(Bucket).file(path).createReadStream();
         const rl = createInterface({
             input: data,
-            crlfDelay: Infinity
+            crlfDelay: Infinity,
         });
 
         return rl;
@@ -61,6 +64,18 @@ export class Storage extends AStorage implements StorageInterface {
         const storage = this.getInstance(options);
         const Bucket = options.Bucket || this.getOptions().Bucket;
         await storage.bucket(Bucket).file(path).save(content);
+    }
+
+    async deleteFile(filePath, options: any = {}) {
+        this.isInitialized();
+        const storage = this.getInstance(options);
+        const Bucket = options.Bucket || this.getOptions().Bucket;
+        const [files] = await storage.bucket(Bucket).getFiles({ prefix: filePath });
+
+        await files[0]?.delete();
+        debug(`O arquivo ${filePath} foi excluído`);
+
+        return StorageOutputEnum.Success;
     }
 
     async deleteDirectory(directoryPath, options: any = {}) {
@@ -108,7 +123,7 @@ export class Storage extends AStorage implements StorageInterface {
             const subdirectoryPath = subdirectory.name;
             const subdirectoryFilePaths = await this.readDirectory(subdirectoryPath, {
                 ...options,
-                directoryPath: options.directoryPath || directoryPath
+                directoryPath: options.directoryPath || directoryPath,
             });
             filePaths = filePaths.concat(subdirectoryFilePaths);
         }
