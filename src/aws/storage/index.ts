@@ -103,7 +103,7 @@ export class S3 extends Storage implements StorageInterface {
         const upload = storage
             .upload(uploadParams, {
                 queueSize: 4, // optional concurrency configuration
-                partSize: '5MB', // optional size of each part
+                partSize: 5 * 1024 * 1024, // optional size of each part
                 leavePartsOnError: true, // optional manually handle dropped parts
                 ...(params.options || {}),
             })

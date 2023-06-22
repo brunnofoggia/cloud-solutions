@@ -1,6 +1,6 @@
 {
     "name": "cloud_solutions_factory",
-    "version": "1.13.0-alpha6",
+    "version": "1.13.1",
     "description": "",
     "license": "ISC",
     "main": "dist/index.js",
@@ -9,7 +9,7 @@
         "husky:install": "husky install",
         "exec:kms": "cross-env IS_TS_NODE=true ts-node -r tsconfig-paths/register test/kms",
         "prebuild": "rimraf dist",
-        "build": "tsc",
+        "build": "tsc -p ./tsconfig.build.json",
         "lint": "eslint \"{src,apps,libs}/**/*.+(js|json|ts|tsx)\" --fix",
         "pre-commit": "lint-staged",
         "prepare": "npm run build",
