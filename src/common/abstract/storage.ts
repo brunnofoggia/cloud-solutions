@@ -2,6 +2,13 @@ import _ from 'lodash';
 import { Solution } from './solution';
 
 export abstract class Storage extends Solution {
+    protected defaultOptions: any = {
+        params: {
+            streamQueueSize: 4,
+            streamPartSize: 5 * 1024 * 1024,
+        },
+    };
+
     checkOptions() {
         if (!this.options.Bucket) {
             throw new Error('Missing option "Bucket" for storage solution');

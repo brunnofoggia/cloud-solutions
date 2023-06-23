@@ -3,16 +3,20 @@ const debug = _debug('solutions:storage:aws:WriteStream');
 
 import { Transform } from 'stream';
 
-export class WriteStream {
+import { WriteStreamInterface } from '../../common/interfaces/writeStream.interface';
+import { WriteStream as _WriteStream } from '../../common/abstract/writeStream';
+
+export class WriteStream extends _WriteStream implements WriteStreamInterface {
     protected upload: any;
     protected filePath: string;
 
     constructor(protected _stream: Transform, options: any = {}) {
+        super();
         this.upload = options.upload;
         this.filePath = options.filePath;
     }
 
-    write(content) {
+    async write(content) {
         return this._stream.write(content);
     }
 

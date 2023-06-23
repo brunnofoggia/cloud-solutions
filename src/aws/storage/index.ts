@@ -1,7 +1,7 @@
 import _debug from 'debug';
 const debug = _debug('solutions:storage:aws');
 
-import _ from 'lodash';
+import { omit, intersection, keys, pick, map } from 'lodash';
 import AWS from 'aws-sdk';
 import { createInterface } from 'readline';
 import stream from 'stream';
@@ -22,9 +22,9 @@ export class S3 extends Storage implements StorageInterface {
     }
 
     getInstance(options: any = {}) {
-        if (_.intersection(_.keys(options), _.keys(keyFields)).length > 0) {
+        if (intersection(keys(options), keys(keyFields)).length > 0) {
             const instance = this.createInstance(options);
-            providerConfig(_.pick(this.providerOptions, ..._.keys(keyFields)));
+            providerConfig(pick(this.providerOptions, ...keys(keyFields)));
             return instance;
         }
         return this.instance;
@@ -43,8 +43,8 @@ export class S3 extends Storage implements StorageInterface {
         const storage = this.getInstance(options);
 
         const storageParams = {
-            ...this.getOptions(),
-            ..._.omit(options, ..._.keys(keyFields)),
+            ...omit(this.getOptions(), 'params'),
+            ...omit(options, ...keys(keyFields)),
             Key: path,
         };
 
@@ -57,8 +57,8 @@ export class S3 extends Storage implements StorageInterface {
         const storage = this.getInstance(options);
 
         const storageParams = {
-            ...this.getOptions(),
-            ..._.omit(options, ..._.keys(keyFields)),
+            ...omit(this.getOptions(), 'params'),
+            ...omit(options, ...keys(keyFields)),
             Key: path,
         };
 
@@ -77,10 +77,10 @@ export class S3 extends Storage implements StorageInterface {
 
         // Configura as opções do upload
         const uploadParams = {
-            ...this.getOptions(),
+            ...omit(this.getOptions(), 'params'),
             Key: filePath,
             Body: typeof content === 'string' ? Buffer.from(content) : content,
-            ..._.omit(params, 'options', ..._.keys(keyFields)),
+            ...omit(params, 'options', ...keys(keyFields)),
         };
 
         await storage.upload(uploadParams, params.options || {}).promise();
@@ -94,16 +94,16 @@ export class S3 extends Storage implements StorageInterface {
         const _stream = new stream.PassThrough();
         // Configura as opções do upload
         const uploadParams = {
-            ...this.getOptions(),
+            ...omit(this.getOptions(), 'params'),
             Key: filePath,
             Body: _stream,
-            ..._.omit(params, 'options', ..._.keys(keyFields)),
+            ...omit(params, 'options', ...keys(keyFields)),
         };
 
         const upload = storage
             .upload(uploadParams, {
-                queueSize: 4, // optional concurrency configuration
-                partSize: 5 * 1024 * 1024, // optional size of each part
+                queueSize: this.options.params.streamQueueSize, // optional concurrency configuration
+                partSize: this.options.params.streamPartSize, // optional size of each part
                 leavePartsOnError: true, // optional manually handle dropped parts
                 ...(params.options || {}),
             })
@@ -117,7 +117,7 @@ export class S3 extends Storage implements StorageInterface {
         const storage = this.getInstance(options);
         await storage
             .deleteObject({
-                ...this.getOptions(),
+                ...omit(this.getOptions(), 'params'),
                 Key: filePath,
             })
             .promise();
@@ -132,14 +132,14 @@ export class S3 extends Storage implements StorageInterface {
 
         const objects = await storage
             .listObjectsV2({
-                ...this.getOptions(),
+                ...omit(this.getOptions(), 'params'),
                 Prefix: directoryPath,
                 ...options,
             })
             .promise();
 
         const deleteParams = {
-            ...this.getOptions(),
+            ...omit(this.getOptions(), 'params'),
             Delete: { Objects: objects.Contents.map(({ Key }) => ({ Key })) },
         };
 
@@ -150,7 +150,7 @@ export class S3 extends Storage implements StorageInterface {
         } else {
             await storage
                 .deleteObject({
-                    ...this.getOptions(),
+                    ...omit(this.getOptions(), 'params'),
                     Key: directoryPath,
                 })
                 .promise();
@@ -163,14 +163,14 @@ export class S3 extends Storage implements StorageInterface {
         const storage = this.getInstance(_options);
 
         const options: any = {
-            ...this.getOptions(),
-            ..._.omit(_options, ..._.keys(keyFields)),
+            ...omit(this.getOptions(), 'params'),
+            ...omit(_options, ...keys(keyFields)),
         };
         directoryPath && (options.Prefix = directoryPath);
 
         const objects = await storage.listObjectsV2(options).promise();
 
-        return _.map(objects?.Contents, (item) => item.Key);
+        return map(objects?.Contents, (item) => item.Key);
     }
 
     async checkDirectoryExists(directoryPath = '', options: any = {}) {
