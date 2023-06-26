@@ -49,7 +49,7 @@ export abstract class Storage extends Solution {
     }
 
     async checkDirectoryContentLength(directoryPath = '', options: any = {}) {
-        return (await this.checkDirectoryContentLength(directoryPath, options)) > 0;
+        return (await this.getDirectoryContentLength(directoryPath, options)) > 0;
     }
 
     // TODO: alias [to be removed]
