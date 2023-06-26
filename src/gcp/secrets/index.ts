@@ -34,17 +34,11 @@ export class SecretManager extends Secrets implements SecretsInterface {
     }
 
     createInstance(options: any = {}) {
-        const config = providerConfig(_.defaults(
-            _.omitBy(_.pick(options, ..._.keys(keyFields)), (value) => !value),
-            _.pick(this.providerOptions, ..._.keys(keyFields)),
-        ));
-
-        const instance = new SecretManagerServiceClient({
+        const config = providerConfig(this.mergeProviderOptions(options, keyFields));
+        return new SecretManagerServiceClient({
             ...config,
-            projectId: this.getProjectId()
+            projectId: this.getProjectId(),
         });
-
-        return instance;
     }
 
     formatPath(path) {
@@ -67,13 +61,5 @@ export class SecretManager extends Secrets implements SecretsInterface {
         });
         const payload = version.payload.data.toString();
         return payload;
-    }
-
-    async getSecretValue(path: string) {
-        return super.get(path, async (path) => await this._getSecretValue(path));
-    }
-
-    async getValue(path: string) {
-        return super.get(path, async (path) => await this._getSecretValue(path));
     }
 }

@@ -10,9 +10,4 @@ export class Env extends Secrets implements SecretsInterface {
         path = this.formatPath(path);
         return process.env[path];
     }
-
-    async getValue(path: string) {
-        path = this.formatPath(path);
-        return process.env[path];
-    }
 }

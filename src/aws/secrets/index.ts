@@ -32,14 +32,6 @@ export class ParameterStore extends Secrets implements SecretsInterface {
         return new AWS.SSM({});
     }
 
-    async getSecretValue(path: string) {
-        return super.get(path, async (path) => await this._getSecretValue(path));
-    }
-
-    async getValue(path: string) {
-        return super.get(path, async (path) => (await this.getParameterFromCloud(path))?.Value);
-    }
-
     async _getSecretValue(path) {
         const param = await this.getParameterFromCloud(path);
         if (param?.Value && param?.ARN) {

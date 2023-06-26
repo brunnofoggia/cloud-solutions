@@ -2,7 +2,7 @@ import { Solution } from './solution';
 
 export abstract class Secrets extends Solution {
     public defaultOptions: any = {
-        cache: true
+        cache: true,
     };
     protected static cache: any = {};
 
@@ -16,5 +16,13 @@ export abstract class Secrets extends Solution {
 
     clearCache() {
         Secrets.cache = {};
+    }
+
+    async getSecretValue(path: string) {
+        return this.get(path, async (path) => await this._getSecretValue(path));
+    }
+
+    async _getSecretValue(path: string) {
+        return '';
     }
 }
