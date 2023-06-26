@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import _, { defaultsDeep, keys, omit } from 'lodash';
 import { Solution } from './solution';
 
 export abstract class Storage extends Solution {
@@ -29,5 +29,31 @@ export abstract class Storage extends Solution {
 
     async _sendContent(path, content, params: any = {}) {
         null;
+    }
+
+    mergeStorageOptions(options = {}, keyFields) {
+        return defaultsDeep({}, omit(this.getOptions(), 'params'), omit(options, 'params', ...keys(keyFields)));
+    }
+
+    async readDirectory(directoryPath = '', options: any = {}) {
+        return [];
+    }
+
+    async getDirectoryContentLength(directoryPath = '', options: any = {}) {
+        try {
+            const objects = await this.readDirectory(directoryPath, options);
+            return objects?.length;
+        } catch (error) {
+            return -1;
+        }
+    }
+
+    async checkDirectoryContentLength(directoryPath = '', options: any = {}) {
+        return (await this.checkDirectoryContentLength(directoryPath, options)) > 0;
+    }
+
+    // TODO: alias [to be removed]
+    async checkDirectoryExists(directoryPath = '', options: any = {}) {
+        return await this.checkDirectoryContentLength(directoryPath, options);
     }
 }

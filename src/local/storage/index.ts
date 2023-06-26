@@ -102,17 +102,6 @@ export class Fs extends Storage implements StorageInterface {
         }
     }
 
-    async checkDirectoryExists(directoryPath = '', options: any = {}) {
-        let objects = null;
-
-        try {
-            objects = await this.readDirectory(directoryPath, { options, silent: 1 });
-            return objects?.length > 0;
-        } catch (error) {
-            return 0;
-        }
-    }
-
     sendStream(filePath, params: any = {}) {
         this.isInitialized();
         const upload = async (content) => await this._sendContent(filePath, content, params);

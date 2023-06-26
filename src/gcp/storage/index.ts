@@ -70,7 +70,7 @@ export class Storage extends AStorage implements StorageInterface {
         this.isInitialized();
         const storage = this.getInstance(options);
         const Bucket = options.Bucket || this.getOptions().Bucket;
-        const [files] = await storage.bucket(Bucket).getFiles({ prefix: filePath });
+        const [files] = await storage.bucket(Bucket).getFiles({ prefix: filePath, ...(options.params || {}) });
 
         await files[0]?.delete();
         debug(`O arquivo ${filePath} foi excluído`);
@@ -83,13 +83,13 @@ export class Storage extends AStorage implements StorageInterface {
         const storage = this.getInstance(options);
         const Bucket = options.Bucket || this.getOptions().Bucket;
 
-        const [files] = await storage.bucket(Bucket).getFiles({ prefix: directoryPath });
+        const [files] = await storage.bucket(Bucket).getFiles({ prefix: directoryPath, ...(options.params || {}) });
         const deletePromises = [];
         files.forEach((file) => {
             deletePromises.push(file.delete());
         });
 
-        const [subdirectories] = await storage.bucket(Bucket).getFiles({ prefix: directoryPath, delimiter: '/' });
+        const [subdirectories] = await storage.bucket(Bucket).getFiles({ prefix: directoryPath, delimiter: '/', ...(options.params || {}) });
         subdirectories.forEach((subdirectory) => {
             deletePromises.push(this.deleteDirectory(subdirectory.name));
         });
@@ -106,7 +106,7 @@ export class Storage extends AStorage implements StorageInterface {
 
         const fileOptions: any = {};
         directoryPath && (fileOptions.prefix = directoryPath);
-        const [files] = await storage.bucket(Bucket).getFiles({ prefix: directoryPath });
+        const [files] = await storage.bucket(Bucket).getFiles({ prefix: directoryPath, ...(options.params || {}) });
 
         let filePaths = [];
         for (const file of files) {
@@ -129,10 +129,5 @@ export class Storage extends AStorage implements StorageInterface {
         }
 
         return filePaths;
-    }
-
-    async checkDirectoryExists(directoryPath = '', options: any = {}) {
-        const objects = await this.readDirectory(directoryPath, options);
-        return objects?.length > 0;
     }
 }

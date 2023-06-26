@@ -8,11 +8,11 @@ import stream from 'stream';
 
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
 import { StorageInterface } from '../../common/interfaces/storage.interface';
-import { Storage } from '../../common/abstract/storage';
+import { Storage as AStorage } from '../../common/abstract/storage';
 import { providerConfig, keyFields } from '../index';
 import { WriteStream } from './writeStream';
 
-export class S3 extends Storage implements StorageInterface {
+export class S3 extends AStorage implements StorageInterface {
     protected instance;
 
     async initialize(options: any = {}) {
@@ -40,8 +40,7 @@ export class S3 extends Storage implements StorageInterface {
         const storage = this.getInstance(options);
 
         const storageParams = {
-            ...omit(this.getOptions(), 'params'),
-            ...omit(options, ...keys(keyFields)),
+            ...this.mergeStorageOptions(options, keyFields),
             Key: path,
         };
 
@@ -54,8 +53,7 @@ export class S3 extends Storage implements StorageInterface {
         const storage = this.getInstance(options);
 
         const storageParams = {
-            ...omit(this.getOptions(), 'params'),
-            ...omit(options, ...keys(keyFields)),
+            ...this.mergeStorageOptions(options, keyFields),
             Key: path,
         };
 
@@ -68,33 +66,32 @@ export class S3 extends Storage implements StorageInterface {
         return rl;
     }
 
-    async _sendContent(filePath, content, params: any = {}) {
+    async _sendContent(filePath, content, options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(params);
+        const storage = this.getInstance(options);
 
         // Configura as opções do upload
         const uploadParams = {
-            ...omit(this.getOptions(), 'params'),
+            ...this.mergeStorageOptions(options, keyFields),
             Key: filePath,
             Body: typeof content === 'string' ? Buffer.from(content) : content,
-            ...omit(params, 'options', ...keys(keyFields)),
         };
 
-        await storage.upload(uploadParams, params.options || {}).promise();
+        await storage.upload(uploadParams, options.params || {}).promise();
         debug(`Os dados foram escritos em ${filePath}`);
     }
 
-    sendStream(filePath, params: any = {}) {
+    sendStream(filePath, options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(params);
+        const storage = this.getInstance(options);
 
         const _stream = new stream.PassThrough();
         // Configura as opções do upload
         const uploadParams = {
             ...omit(this.getOptions(), 'params'),
+            ...omit(options, 'params', ...keys(keyFields)),
             Key: filePath,
             Body: _stream,
-            ...omit(params, 'options', ...keys(keyFields)),
         };
 
         const upload = storage
@@ -102,7 +99,7 @@ export class S3 extends Storage implements StorageInterface {
                 queueSize: this.options.params.streamQueueSize, // optional concurrency configuration
                 partSize: this.options.params.streamPartSize, // optional size of each part
                 leavePartsOnError: true, // optional manually handle dropped parts
-                ...(params.options || {}),
+                ...(options.params || {}),
             })
             .promise();
 
@@ -159,19 +156,11 @@ export class S3 extends Storage implements StorageInterface {
         this.isInitialized();
         const storage = this.getInstance(_options);
 
-        const options: any = {
-            ...omit(this.getOptions(), 'params'),
-            ...omit(_options, ...keys(keyFields)),
-        };
+        const options: any = this.mergeStorageOptions(_options, keyFields);
         directoryPath && (options.Prefix = directoryPath);
 
         const objects = await storage.listObjectsV2(options).promise();
 
         return map(objects?.Contents, (item) => item.Key);
-    }
-
-    async checkDirectoryExists(directoryPath = '', options: any = {}) {
-        const objects = await this.readDirectory(directoryPath, options);
-        return objects?.length > 0;
     }
 }
