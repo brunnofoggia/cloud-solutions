@@ -1,7 +1,7 @@
 import _debug from 'debug';
 const debug = _debug('solutions:storage:gcp');
 
-import _ from 'lodash';
+import _, { defaultsDeep } from 'lodash';
 import { Storage as GStorage } from '@google-cloud/storage';
 import { createInterface } from 'readline';
 
@@ -104,9 +104,9 @@ export class Storage extends AStorage implements StorageInterface {
         const storage = this.getInstance(options);
         const Bucket = options.Bucket || this.getOptions().Bucket;
 
-        const fileOptions: any = {};
+        const fileOptions: any = defaultsDeep({}, options.params || {});
         directoryPath && (fileOptions.prefix = directoryPath);
-        const [files] = await storage.bucket(Bucket).getFiles({ prefix: directoryPath, ...(options.params || {}) });
+        const [files] = await storage.bucket(Bucket).getFiles(fileOptions);
 
         let filePaths = [];
         for (const file of files) {
