@@ -1,4 +1,4 @@
-import { defaultsDeep, omit } from 'lodash';
+import { defaults, defaultsDeep, keys, omit, omitBy, pick } from 'lodash';
 
 export class Solution {
     protected providerOptions: any = {};
@@ -14,9 +14,12 @@ export class Solution {
     }
 
     getOptions() {
-        return omit({
-            ...this.options,
-        }, 'initialized');
+        return omit(
+            {
+                ...this.options,
+            },
+            'initialized',
+        );
     }
 
     checkOptions() {
@@ -29,7 +32,17 @@ export class Solution {
     }
 
     isInitialized() {
-        if (!this.options.initialized)
-            throw new Error('Nao se esqueça de executar o método "initialized" de cada solução da fábrica');
+        if (!this.options.initialized) throw new Error('Nao se esqueça de executar o método "initialized" de cada solução da fábrica');
+    }
+
+    mergeProviderOptions(options = {}, keyFields) {
+        return defaults(
+            omitBy(pick(options, ...keys(keyFields)), (value) => !value),
+            this.getProviderOptions(keyFields),
+        );
+    }
+
+    getProviderOptions(keyFields) {
+        return pick(this.providerOptions, ...keys(keyFields));
     }
 }

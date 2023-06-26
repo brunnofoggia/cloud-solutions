@@ -1,7 +1,7 @@
 import _debug from 'debug';
 const debug = _debug('solutions:storage:aws');
 
-import { omit, intersection, keys, pick, map } from 'lodash';
+import { omit, intersection, keys, map } from 'lodash';
 import AWS from 'aws-sdk';
 import { createInterface } from 'readline';
 import stream from 'stream';
@@ -24,7 +24,7 @@ export class S3 extends Storage implements StorageInterface {
     getInstance(options: any = {}) {
         if (intersection(keys(options), keys(keyFields)).length > 0) {
             const instance = this.createInstance(options);
-            providerConfig(pick(this.providerOptions, ...keys(keyFields)));
+            providerConfig(this.getProviderOptions(keyFields));
             return instance;
         }
         return this.instance;
@@ -32,10 +32,7 @@ export class S3 extends Storage implements StorageInterface {
 
     createInstance(options: any = {}) {
         providerConfig(this.mergeProviderOptions(options, keyFields));
-
-        const instance = new AWS.S3({});
-
-        return instance;
+        return new AWS.S3({});
     }
 
     async readContent(path, options: any = {}) {

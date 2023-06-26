@@ -1,5 +1,5 @@
 import AWS from 'aws-sdk';
-import _ from 'lodash';
+import { intersection, keys } from 'lodash';
 
 import { Secrets } from '../../common/abstract/secrets';
 import { SecretsInterface } from '../../common/interfaces/secrets.interface';
@@ -19,23 +19,17 @@ export class ParameterStore extends Secrets implements SecretsInterface {
     }
 
     getInstance(options: any = {}) {
-        if (_.intersection(_.keys(options), _.keys(keyFields)).length > 0) {
+        if (intersection(keys(options), keys(keyFields)).length > 0) {
             const instance = this.createInstance(options);
-            providerConfig(_.pick(this.providerOptions, ..._.keys(keyFields)));
+            providerConfig(this.getProviderOptions(keyFields));
             return instance;
         }
         return this.instance;
     }
 
     createInstance(options: any = {}) {
-        providerConfig(_.defaults(
-            _.pick(options, ..._.keys(keyFields)),
-            _.pick(this.providerOptions, ..._.keys(keyFields)),
-        ));
-
-        const instance = new AWS.SSM({});
-
-        return instance;
+        providerConfig(this.mergeProviderOptions(options, keyFields));
+        return new AWS.SSM({});
     }
 
     async getSecretValue(path: string) {
@@ -73,14 +67,12 @@ export class ParameterStore extends Secrets implements SecretsInterface {
 
     getParameterFromSsm = async (name) => {
         try {
-            return (await this
-                .request(
-                    "getParameter",
-                    {
-                        Name: name,
-                        WithDecryption: this.getOptions().WithDecryption
-                    }
-                )).Parameter;
+            return (
+                await this.request('getParameter', {
+                    Name: name,
+                    WithDecryption: this.getOptions().WithDecryption,
+                })
+            ).Parameter;
         } catch (error) {
             error.message = `"${name}": ${error.message}`;
             throw error;
