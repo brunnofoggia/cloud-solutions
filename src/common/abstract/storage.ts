@@ -42,9 +42,9 @@ export abstract class Storage extends Solution {
     async getDirectoryContentLength(directoryPath = '', options: any = {}) {
         try {
             const objects = await this.readDirectory(directoryPath, options);
-            return objects?.length;
+            return objects?.length || 0;
         } catch (error) {
-            return -1;
+            return 0;
         }
     }
 
