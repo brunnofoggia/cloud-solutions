@@ -3,3 +3,4 @@ export const mockDirPath = 'dir';
 export const mockSubdirPath = 'dir/subdir';
 export const mockFileContent = 'hello';
 export const mockNullDir = 'null';
+export const mockDirContentList = ['/example.txt'];

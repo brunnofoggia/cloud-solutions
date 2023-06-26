@@ -1,5 +1,5 @@
 import { Fs } from './index';
-import { mockDirPath, mockSubdirPath, mockFileContent, mockFilePath, mockNullDir } from '@test/mocks/storage.mock';
+import { mockDirPath, mockSubdirPath, mockFileContent, mockFilePath, mockNullDir, mockDirContentList } from '@test/mocks/local/storage.mock';
 import fs from 'fs';
 import path from 'path';
 import { Interface } from 'readline';
@@ -8,7 +8,7 @@ describe('Local Storage', () => {
     let storage: Fs;
     const baseDir = path.join(process.cwd(), 'tmp');
 
-    beforeEach(() => {
+    beforeAll(() => {
         const providerOptions = {};
         storage = new Fs(providerOptions);
         storage.initialize();
@@ -20,7 +20,7 @@ describe('Local Storage', () => {
         });
     });
 
-    describe('method: _sendContent', () => {
+    describe('method: sendContent', () => {
         it('should send content to a file', async () => {
             await expect(storage.sendContent(mockFilePath, mockFileContent)).resolves.toBeUndefined();
         });
@@ -32,17 +32,27 @@ describe('Local Storage', () => {
             expect(value).toEqual(mockFileContent);
         });
 
-        it('invalid pathFile should throw an error', async () => {
+        it('invalid file path should throw an error', async () => {
             await expect(storage.readContent('invalid')).rejects.toThrow();
         });
     });
 
     describe('method: readStream', () => {
         it('should return the interface', async () => {
-            const spyReadStream = jest.spyOn(storage, 'readStream');
             const value = await storage.readStream(mockFilePath);
-            expect(spyReadStream).toHaveBeenCalledWith(mockFilePath);
             expect(value).toBeInstanceOf(Interface);
+        });
+    });
+
+    describe('method: readDirectory', () => {
+        it('should return the content', async () => {
+            const value = await storage.readDirectory();
+            expect(value).toEqual(mockDirContentList);
+        });
+
+        it('should return null', async () => {
+            const value = await storage.readDirectory(mockNullDir);
+            expect(value).toBeNull();
         });
     });
 
@@ -54,32 +64,44 @@ describe('Local Storage', () => {
         });
     });
 
-    describe('method: readDirectory', () => {
-        it('should return the content', async () => {
-            const value = await storage.readDirectory();
-            expect(value).toContain(mockFilePath);
+    describe('method: getDirectoryContentLength', () => {
+        it('get directory length', async () => {
+            const value = await storage.getDirectoryContentLength();
+            expect(value).toBeGreaterThan(0);
         });
 
-        it('should return null', async () => {
-            const value = await storage.readDirectory(mockNullDir);
-            expect(value).toBeNull;
+        it('get directory length', async () => {
+            const value = await storage.getDirectoryContentLength(mockDirPath);
+            expect(value).toBeGreaterThan(0);
+        });
+
+        it('should get no content length from unexistent directory', async () => {
+            const value = await storage.getDirectoryContentLength('unexistent');
+            expect(value).toEqual(0);
         });
     });
 
-    describe('method: checkDirectoryExists', () => {
+    describe('method: checkDirectoryContentLength', () => {
         it('check if root dir exists', async () => {
-            const value = await storage.checkDirectoryExists();
+            const value = await storage.checkDirectoryContentLength();
             expect(value).toBeTruthy();
         });
 
         it('check if some dir exists', async () => {
-            const value = await storage.checkDirectoryExists(mockDirPath);
+            const value = await storage.checkDirectoryContentLength(mockDirPath);
             expect(value).toBeTruthy();
         });
 
         it('check unexistent dir', async () => {
-            const value = await storage.checkDirectoryExists(mockNullDir);
+            const value = await storage.checkDirectoryContentLength(mockNullDir);
             expect(value).toBeFalsy();
+        });
+    });
+
+    describe('method: deleteFile', () => {
+        it('should delete the file', async () => {
+            await storage.deleteFile(mockFilePath);
+            expect(fs.existsSync(mockFilePath)).toBeFalsy();
         });
     });
 

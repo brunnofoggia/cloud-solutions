@@ -56,7 +56,6 @@ export class Fs extends Storage implements StorageInterface {
         }
     }
 
-    // no try at local
     async sendContent(path, content, options: any = {}, retry = 3) {
         return await this._sendContent(path, content, options);
     }
