@@ -104,28 +104,14 @@ export class Storage extends AStorage implements StorageInterface {
         const storage = this.getInstance(options);
         const Bucket = options.Bucket || this.getOptions().Bucket;
 
-        const fileOptions: any = defaultsDeep({}, options.params || {});
-        directoryPath && (fileOptions.prefix = directoryPath);
+        const fileOptions: any = defaultsDeep({ prefix: directoryPath }, options.params || {});
         const [files] = await storage.bucket(Bucket).getFiles(fileOptions);
 
-        let filePaths = [];
+        const filePaths = [];
         for (const file of files) {
             // remove basepath from filepath
             const filePath = file.name.replace(`gs://${Bucket}/${options.directoryPath || directoryPath}`, '');
             filePaths.push(filePath);
-        }
-
-        const subdirectoriesOptions: any = { delimiter: '/' };
-        directoryPath && (subdirectoriesOptions.prefix = directoryPath);
-        const [subdirectories] = await storage.bucket(Bucket).getFiles(subdirectoriesOptions);
-
-        for (const subdirectory of subdirectories) {
-            const subdirectoryPath = subdirectory.name;
-            const subdirectoryFilePaths = await this.readDirectory(subdirectoryPath, {
-                ...options,
-                directoryPath: options.directoryPath || directoryPath,
-            });
-            filePaths = filePaths.concat(subdirectoryFilePaths);
         }
 
         return filePaths;
