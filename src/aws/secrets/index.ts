@@ -37,11 +37,11 @@ export class ParameterStore extends Secrets implements SecretsInterface {
     }
 
     async getValue(path: string) {
-        return super.get(path, async (path) => await this.getParamValue(path));
+        return super.get(path, async (path) => (await this.getParameterFromCloud(path))?.Value);
     }
 
     async _getSecretValue(path) {
-        const param = await this.getParameterFromSsm(path);
+        const param = await this.getParameterFromCloud(path);
         if (param?.Value && param?.ARN) {
             let data = param.Value;
             if (!this.getOptions().WithDecryption) {
@@ -53,11 +53,6 @@ export class ParameterStore extends Secrets implements SecretsInterface {
         }
     }
 
-    async getParamValue(path) {
-        const param = await this.getParameterFromSsm(path);
-        return param?.Value;
-    }
-
     async request(methodName, parameters) {
         const service = this.getInstance();
         const parameterPromise = service[methodName](parameters).promise();
@@ -65,7 +60,7 @@ export class ParameterStore extends Secrets implements SecretsInterface {
         return await parameterPromise;
     }
 
-    getParameterFromSsm = async (name) => {
+    getParameterFromCloud = async (name) => {
         try {
             return (
                 await this.request('getParameter', {

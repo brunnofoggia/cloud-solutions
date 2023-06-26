@@ -1,6 +1,6 @@
 {
     "name": "cloud_solutions_factory",
-    "version": "1.14.1",
+    "version": "1.14.2",
     "description": "",
     "license": "ISC",
     "main": "dist/index.js",
