@@ -15,6 +15,7 @@ import { WriteStream } from './writeStream';
 export class Fs extends Storage implements StorageInterface {
     protected defaultOptions: any = {
         basePath: path.join(process.cwd(), 'tmp'),
+        baseDir: 'tmp',
     };
 
     async readContent(filePath, options: any = {}) {
@@ -36,7 +37,12 @@ export class Fs extends Storage implements StorageInterface {
     }
 
     createDirIfNotExists(_path) {
-        const directoryPath = path.dirname(_path);
+        let directoryPath = !_path.startsWith(this.options.basePath) ? path.join(this.options.basePath, _path) : _path;
+
+        const splitDirs = directoryPath.split('/');
+        splitDirs.pop();
+        directoryPath = splitDirs.join('/');
+
         if (!existsSync(directoryPath)) {
             mkdirSync(directoryPath, { recursive: true });
         }

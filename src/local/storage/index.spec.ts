@@ -6,7 +6,8 @@ import { Interface } from 'readline';
 
 describe('Local Storage', () => {
     let storage: Fs;
-    const baseDir = path.join(process.cwd(), 'tmp');
+    const baseDir = 'tmp';
+    const basePath = path.join(process.cwd(), baseDir);
 
     beforeAll(() => {
         const providerOptions = {};
@@ -58,8 +59,8 @@ describe('Local Storage', () => {
 
     describe('method: createDirIfNotExists', () => {
         it('should create if not exists', () => {
-            const _path = [baseDir, mockSubdirPath].join('/');
-            storage.createDirIfNotExists([_path, 'file'].join('/'));
+            const _path = [basePath, mockSubdirPath].join('/');
+            storage.createDirIfNotExists([mockSubdirPath, 'file'].join('/'));
             expect(fs.existsSync(_path)).toBeTruthy();
         });
     });
@@ -107,13 +108,13 @@ describe('Local Storage', () => {
 
     describe('method: deleteDirectory', () => {
         it('should delete the file', async () => {
-            const _path = [baseDir, mockFilePath].join('/');
+            const _path = [basePath, mockFilePath].join('/');
             await storage.deleteDirectory(mockFilePath);
             expect(fs.existsSync(_path)).toBeFalsy();
         });
 
         it('should delete the directory', async () => {
-            const _path = [baseDir, mockDirPath].join('/');
+            const _path = [basePath, mockDirPath].join('/');
             await storage.deleteDirectory(mockDirPath);
             expect(fs.existsSync(_path)).toBeFalsy();
         });
