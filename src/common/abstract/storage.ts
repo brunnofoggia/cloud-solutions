@@ -9,6 +9,8 @@ export abstract class Storage extends Solution {
         },
     };
 
+    createDirIfNotExists(path) {}
+
     checkOptions() {
         if (!this.options.Bucket) {
             throw new Error('Missing option "Bucket" for storage solution');
