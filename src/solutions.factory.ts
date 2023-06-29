@@ -62,7 +62,7 @@ export class SolutionsFactory {
         return adapters[solutionType] && adapters[solutionType][solutionName];
     }
 
-    static find(solutionType: string, solutionName: string) {
+    static findClass(solutionType: string, solutionName: string) {
         return adapters[solutionType] && adapters[solutionType][solutionName];
     }
 }
