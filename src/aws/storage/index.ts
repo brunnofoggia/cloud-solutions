@@ -124,31 +124,36 @@ export class S3 extends AStorage implements StorageInterface {
         this.isInitialized();
         const storage = this.getInstance(options);
 
-        const objects = await storage
-            .listObjectsV2({
-                ...omit(this.getOptions(), 'params'),
-                Prefix: directoryPath,
-                ...options,
-            })
-            .promise();
-
-        const deleteParams = {
-            ...omit(this.getOptions(), 'params'),
-            Delete: { Objects: objects.Contents.map(({ Key }) => ({ Key })) },
-        };
-
-        await storage.deleteObjects(deleteParams).promise();
-
-        if (objects.IsTruncated) {
-            await this.deleteDirectory(directoryPath);
-        } else {
-            await storage
-                .deleteObject({
+        try {
+            const objects = await storage
+                .listObjectsV2({
                     ...omit(this.getOptions(), 'params'),
-                    Key: directoryPath,
+                    Prefix: directoryPath,
+                    ...options,
                 })
                 .promise();
+
+            const deleteParams = {
+                ...omit(this.getOptions(), 'params'),
+                Delete: { Objects: objects.Contents.map(({ Key }) => ({ Key })) },
+            };
+
+            await storage.deleteObjects(deleteParams).promise();
+
+            if (objects.IsTruncated) {
+                await this.deleteDirectory(directoryPath);
+            } else {
+                await storage
+                    .deleteObject({
+                        ...omit(this.getOptions(), 'params'),
+                        Key: directoryPath,
+                    })
+                    .promise();
+            }
+        } catch (error) {
+            debug(error);
         }
+
         return StorageOutputEnum.Success;
     }
 

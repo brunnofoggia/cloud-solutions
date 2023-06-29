@@ -132,5 +132,11 @@ describe('Gcp Storage', () => {
             await storage.deleteDirectory(_path);
             expect(await storage.checkDirectoryExists(mockDir)).toBeFalsy();
         });
+
+        it('should omit delete directory', async () => {
+            const _path = [mockDir, mockSubdir].join('/');
+            await storage.deleteDirectory(_path);
+            expect(await storage.checkDirectoryExists(mockDir)).toBeFalsy();
+        });
     });
 });

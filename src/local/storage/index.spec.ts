@@ -101,19 +101,20 @@ describe('Local Storage', () => {
 
     describe('method: deleteFile', () => {
         it('should delete the file', async () => {
-            await storage.deleteFile(mockFilePath);
-            expect(fs.existsSync(mockFilePath)).toBeFalsy();
-        });
-    });
-
-    describe('method: deleteDirectory', () => {
-        it('should delete the file', async () => {
             const _path = [basePath, mockFilePath].join('/');
             await storage.deleteDirectory(mockFilePath);
             expect(fs.existsSync(_path)).toBeFalsy();
         });
+    });
 
+    describe('method: deleteDirectory', () => {
         it('should delete the directory', async () => {
+            const _path = [basePath, mockDirPath].join('/');
+            await storage.deleteDirectory(mockDirPath);
+            expect(fs.existsSync(_path)).toBeFalsy();
+        });
+
+        it('should omit delete directory', async () => {
             const _path = [basePath, mockDirPath].join('/');
             await storage.deleteDirectory(mockDirPath);
             expect(fs.existsSync(_path)).toBeFalsy();
