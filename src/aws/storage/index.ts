@@ -151,7 +151,7 @@ export class S3 extends AStorage implements StorageInterface {
                     .promise();
             }
         } catch (error) {
-            debug(error);
+            error;
         }
 
         return StorageOutputEnum.Success;
