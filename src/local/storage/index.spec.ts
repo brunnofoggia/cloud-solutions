@@ -2,8 +2,6 @@ import dotenv from 'dotenv';
 dotenv.config({ path: 'test/env/local/.env' });
 
 import { Fs } from '.';
-// import { mockDirPath, mockSubdirPath, mockFileContent, mockFilePath, mockNullDir, mockDirContentList } from '@test/mocks/local/storage.mock';
-// import fs from 'fs';
 import path from 'path';
 import { Interface } from 'readline';
 

@@ -93,20 +93,25 @@ export class Storage extends AStorage implements StorageInterface {
     async deleteDirectory(directoryPath, options: any = {}) {
         this.isInitialized();
         const storage = this.getInstance(options);
-        const Bucket = options.Bucket || this.getOptions().Bucket;
 
-        const [files] = await storage.bucket(Bucket).getFiles({ prefix: directoryPath, ...(options.params || {}) });
-        const deletePromises = [];
-        files.forEach((file) => {
-            deletePromises.push(file.delete());
-        });
+        try {
+            const Bucket = options.Bucket || this.getOptions().Bucket;
 
-        const [subdirectories] = await storage.bucket(Bucket).getFiles({ prefix: directoryPath, delimiter: '/', ...(options.params || {}) });
-        subdirectories.forEach((subdirectory) => {
-            deletePromises.push(this.deleteDirectory(subdirectory.name));
-        });
+            const [files] = await storage.bucket(Bucket).getFiles({ prefix: directoryPath, ...(options.params || {}) });
+            const deletePromises = [];
+            files.forEach((file) => {
+                deletePromises.push(file.delete());
+            });
 
-        await Promise.all(deletePromises);
+            const [subdirectories] = await storage.bucket(Bucket).getFiles({ prefix: directoryPath, delimiter: '/', ...(options.params || {}) });
+            subdirectories.forEach((subdirectory) => {
+                deletePromises.push(this.deleteDirectory(subdirectory.name));
+            });
+
+            await Promise.all(deletePromises);
+        } catch (error) {
+            return StorageOutputEnum.NotFound;
+        }
 
         return StorageOutputEnum.Success;
     }

@@ -7,7 +7,7 @@ import {
     mockFileStreamPath,
     mockFileStreamContent,
     mockSubdirFileName,
-} from '@test/mocks/aws/storage.mock';
+} from '@test/mocks/storage.mock';
 import { sleep } from '../utils';
 
 const toBeDefined: any = {};
