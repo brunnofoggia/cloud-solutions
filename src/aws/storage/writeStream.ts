@@ -17,12 +17,12 @@ export class WriteStream extends _WriteStream implements WriteStreamInterface {
     }
 
     async write(content) {
-        return this._stream.write(content);
+        return await this._stream.write(content);
     }
 
     async end() {
         this._stream.end();
         await this.upload;
-        debug(`Os dados foram escritos em ${this.filePath}`);
+        debug(`Data written into ${this.filePath}`);
     }
 }

@@ -3,4 +3,5 @@ export enum ProviderEnum {
     GCP = 'gcp',
     AZURE = 'azure',
     LOCAL = 'local',
+    THIRDPARTY = 'thirdparty',
 }

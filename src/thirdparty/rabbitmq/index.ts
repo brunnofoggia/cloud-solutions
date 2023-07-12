@@ -2,10 +2,9 @@ import amqplib from 'amqplib';
 import _debug from 'debug';
 const debug = _debug('solutions:events');
 
-import { sleep } from '../common/utils/index';
-import { EventsInterface } from '../common/interfaces/events.interface';
-import { Events } from '../common/abstract/events';
-
+import { sleep } from '../../common/utils/index';
+import { EventsInterface } from '../../common/interfaces/events.interface';
+import { Events } from '../../common/abstract/events';
 
 export class RabbitMQ extends Events implements EventsInterface {
     private connection = null;
@@ -21,7 +20,7 @@ export class RabbitMQ extends Events implements EventsInterface {
 
             this.connection = await amqplib.connect(`amqp://${user}:${pass}@${host}:${port}`);
 
-            this.connection.once("close", async () => {
+            this.connection.once('close', async () => {
                 debug(`@${process.pid} RABBITMQ CONNECTION CLOSED. RETRYING TO RECONNECT...`);
                 await this.reconnect();
             });
@@ -53,11 +52,11 @@ export class RabbitMQ extends Events implements EventsInterface {
                 this.channel.qos(+this.options.maxNumberOfMessages, true);
             }
 
-            this.channel.once("close", async () => {
-                debug(`@${process.pid} RABBITMQ CHANNEL CLOSED. RETRYING TO CREATE CHANNEL ON RABBITMQ... ${new Date}`);
+            this.channel.once('close', async () => {
+                debug(`@${process.pid} RABBITMQ CHANNEL CLOSED. RETRYING TO CREATE CHANNEL ON RABBITMQ... ${new Date()}`);
                 this.reconnect();
             });
-            this.channel.on("error", async (error) => {
+            this.channel.on('error', async (error) => {
                 debug(`@${process.pid} RABBITMQ CHANNEL ERROR. ${error.message || ''}`);
             });
         } catch (error) {
@@ -103,9 +102,12 @@ export class RabbitMQ extends Events implements EventsInterface {
             const name = this.formatQueueName(_name);
             this.channel.assertQueue(name, { durable: true, persistent: true });
 
-            this.channel.consume(name, async data => {
-                try { await this.receiveMessage(name, _handler, data, { events: this, channel: this.channel }); }
-                catch (error) { console.error(error, { name, content: data.content }); }
+            this.channel.consume(name, async (data) => {
+                try {
+                    await this.receiveMessage(name, _handler, data, { events: this, channel: this.channel });
+                } catch (error) {
+                    console.error(error, { name, content: data.content });
+                }
             });
         }
     }
@@ -120,7 +122,7 @@ export class RabbitMQ extends Events implements EventsInterface {
         await this.closeChannel();
 
         if (!this.connection) return false;
-        this.connection.removeAllListeners("close");
+        this.connection.removeAllListeners('close');
         await this.connection.close();
 
         return true;

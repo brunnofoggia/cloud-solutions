@@ -2,8 +2,24 @@ import dotenv from 'dotenv';
 dotenv.config({ path: 'test/env/gcp/.env' });
 import { Storage as GStorage } from '@google-cloud/storage';
 import { Storage } from '.';
-import { mockDir, mockDirContentList, mockFileContent, mockFilePath, mockSubdir } from '@test/mocks/gcp/storage.mock';
 import { Interface } from 'readline';
+
+import {
+    checkDirectoryContentLength,
+    checkOptions,
+    createInstance,
+    deleteDirectory,
+    deleteFile,
+    getDirectoryContentLength,
+    getInstance,
+    readContent,
+    readDirectory,
+    readStream,
+    sendContent,
+    sendStream,
+    toBeDefined,
+} from '@/common/abstract/storage.test';
+import { WriteStream } from './writeStream';
 
 describe('Gcp Storage', () => {
     let storage: Storage;
@@ -23,120 +39,126 @@ describe('Gcp Storage', () => {
 
     describe('to be defined', () => {
         it('storage', async () => {
-            expect(storage).toBeDefined();
+            await toBeDefined.storage(storage);
         });
     });
 
-    describe('method: getInstance', () => {
-        it('value should be instance of Google Storage', () => {
-            const value = storage.getInstance();
-            expect(value).toBeInstanceOf(GStorage);
+    describe('common method: checkOptions', () => {
+        it('should be valid', () => {
+            checkOptions.shouldBeValid(storage);
+        });
+        it('should throw error', async () => {
+            await checkOptions.shouldThrowError(Storage);
         });
     });
 
-    describe('method: createInstance', () => {
-        it('value should be instance of Google Storage', () => {
-            const value = storage.createInstance();
-            expect(value).toBeInstanceOf(GStorage);
+    describe('specific method: getInstance', () => {
+        it('should be instance of GStorage', () => {
+            getInstance.shouldBeInstanceOf(storage, GStorage);
         });
     });
 
-    describe('method: sendContent', () => {
+    describe('specific method: createInstance', () => {
+        it('value should be instance of GStorage', () => {
+            createInstance.shouldBeInstanceOf(storage, GStorage);
+        });
+    });
+
+    describe('common method: sendContent', () => {
         it('upload file', async () => {
-            await expect(storage.sendContent(mockFilePath, mockFileContent)).resolves.toBeUndefined();
+            await sendContent.uploadFile(storage);
         });
 
-        it('upload dir/subdir', async () => {
-            const _path = [mockDir, mockSubdir].join('/');
-            await expect(storage.sendContent(_path, mockFileContent)).resolves.toBeUndefined();
+        it('upload file into subdirectory', async () => {
+            await sendContent.uploadFileIntoSubDirectory(storage);
         });
     });
 
-    describe('method: readContent', () => {
-        it('should return the content', async () => {
-            const value = await storage.readContent(mockFilePath);
-            expect(value).toEqual(mockFileContent);
+    describe('common method: readContent', () => {
+        it('should match content', async () => {
+            await readContent.shouldMatchContent(storage);
         });
 
-        it('invalid pathFile should throw an error', async () => {
-            await expect(storage.readContent('invalid')).rejects.toThrow();
+        it('should throw error for unexistent file', async () => {
+            await readContent.shouldThrowErrorForUnexistentFile(storage);
         });
     });
 
-    describe('method: readStream', () => {
-        it('value should be instance of Interface', async () => {
-            const value = await storage.readStream(mockFilePath);
-            expect(value).toBeInstanceOf(Interface);
+    describe('common method: sendStream', () => {
+        it('should return instance of WriteStream', async () => {
+            await sendStream.shouldReturnInstanceOfWriteStream(storage, WriteStream);
+        });
+
+        it('should send content', async () => {
+            await sendStream.shouldSendContent(storage);
         });
     });
 
-    describe('method: readDirectory', () => {
-        it('should read the root dir content', async () => {
-            const value = await storage.readDirectory();
-            expect(value.length).toBeGreaterThan(0);
+    describe('common method: readStream', () => {
+        it('should be instance of Interface', async () => {
+            await readStream.shouldReturnInstanceOfInterface(storage, Interface);
         });
 
-        it('should read the dir content', async () => {
-            const value = await storage.readDirectory(mockDir);
-            expect(value).toEqual(mockDirContentList);
-        });
-
-        it('should return null', async () => {
-            const value = await storage.readDirectory('unexistent');
-            expect(value).toEqual([]);
+        it('should match content', async () => {
+            await readStream.shouldMatchContent(storage);
         });
     });
 
-    describe('method: getDirectoryContentLength', () => {
-        it('get root directory length', async () => {
-            const value = await storage.getDirectoryContentLength();
-            expect(value).toBeGreaterThan(0);
+    describe('common method: readDirectory', () => {
+        it('should have content', async () => {
+            await readDirectory.shouldHaveContent(storage);
         });
 
-        it('get directory length', async () => {
-            const value = await storage.getDirectoryContentLength(mockDir);
-            expect(value).toBeGreaterThan(0);
+        it('should match content list', async () => {
+            await readDirectory.shouldMatchContentList(storage);
         });
 
-        it('should get no content length from unexistent directory', async () => {
-            const value = await storage.getDirectoryContentLength('unexistent');
-            expect(value).toEqual(0);
+        it('should have nothing', async () => {
+            await readDirectory.shouldHaveNothing(storage);
         });
     });
 
-    describe('method: checkDirectoryContentLength', () => {
-        it('check if root dir exists', async () => {
-            const value = await storage.checkDirectoryContentLength();
-            expect(value).toBeTruthy();
+    describe('common method: getDirectoryContentLength', () => {
+        it('should have something into rootdir', async () => {
+            await getDirectoryContentLength.shouldHaveSomethingIntoRootdir(storage);
         });
-        it('check if some dir exists', async () => {
-            const value = await storage.checkDirectoryContentLength(mockDir);
-            expect(value).toBeTruthy();
+
+        it('should have something into dir', async () => {
+            await getDirectoryContentLength.shouldHaveSomethingIntoDir(storage);
         });
-        it('check unexistent dir', async () => {
-            const value = await storage.checkDirectoryContentLength('unexistent');
-            expect(value).toBeFalsy();
+
+        it('should have nothing into unexistent directory', async () => {
+            await getDirectoryContentLength.shouldHaveNothingIntoUnexistentDirectory(storage);
         });
     });
 
-    describe('method: deleteFile', () => {
-        it('should delete the file', async () => {
-            await storage.deleteFile(mockFilePath);
-            await expect(storage.readContent(mockFilePath)).rejects.toThrow();
+    describe('common method: checkDirectoryContentLength', () => {
+        it('should exist rootdir', async () => {
+            await checkDirectoryContentLength.shouldExistRootdir(storage);
+        });
+
+        it('should exist dir', async () => {
+            await checkDirectoryContentLength.shouldExistDir(storage);
+        });
+
+        it('should not exist', async () => {
+            await checkDirectoryContentLength.shouldNotExist(storage);
         });
     });
 
-    describe('method: deleteDirectory', () => {
-        it('should delete the directory', async () => {
-            const _path = [mockDir, mockSubdir].join('/');
-            await storage.deleteDirectory(_path);
-            expect(await storage.checkDirectoryExists(mockDir)).toBeFalsy();
+    describe('common method: deleteFile', () => {
+        it('should do', async () => {
+            await deleteFile.shouldDo(storage);
+        });
+    });
+
+    describe('common method: deleteDirectory', () => {
+        it('should delete recursively', async () => {
+            await deleteDirectory.shouldDeleteRecursively(storage);
         });
 
-        it('should omit delete directory', async () => {
-            const _path = [mockDir, mockSubdir].join('/');
-            await storage.deleteDirectory(_path);
-            expect(await storage.checkDirectoryExists(mockDir)).toBeFalsy();
+        it('should omit deletion of unexistent directory', async () => {
+            await deleteDirectory.shouldOmitDeletionOfUnexistentDirectory(storage);
         });
     });
 });

@@ -1,7 +1,7 @@
 import _debug from 'debug';
 const debug = _debug('solutions:storage:gcp');
 
-import _, { defaultsDeep } from 'lodash';
+import { defaultsDeep, intersection, keys } from 'lodash';
 import { Storage as GStorage } from '@google-cloud/storage';
 import { createInterface } from 'readline';
 
@@ -9,6 +9,7 @@ import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
 import { StorageInterface } from '../../common/interfaces/storage.interface';
 import { Storage as AStorage } from '../../common/abstract/storage';
 import { providerConfig, keyFields } from '../index';
+import { WriteStream } from './writeStream';
 
 export class Storage extends AStorage implements StorageInterface {
     protected instance;
@@ -20,7 +21,7 @@ export class Storage extends AStorage implements StorageInterface {
     }
 
     getInstance(options: any = {}) {
-        if (_.intersection(_.keys(options), _.keys(keyFields)).length > 0) {
+        if (intersection(keys(options), keys(keyFields)).length > 0) {
             const instance = this.createInstance(options);
             return instance;
         }
@@ -59,11 +60,22 @@ export class Storage extends AStorage implements StorageInterface {
         return rl;
     }
 
-    async _sendContent(path, content, options: any = {}) {
+    async _sendContent(filePath, content, options: any = {}) {
         this.isInitialized();
         const storage = this.getInstance(options);
         const Bucket = options.Bucket || this.getOptions().Bucket;
-        await storage.bucket(Bucket).file(path).save(content);
+        await storage.bucket(Bucket).file(filePath).save(content);
+        debug(`File sent to ${filePath}`);
+    }
+
+    sendStream(filePath, options: any = {}) {
+        this.isInitialized();
+        const storage = this.getInstance(options);
+        const Bucket = options.Bucket || this.getOptions().Bucket;
+
+        const _stream = storage.bucket(Bucket).file(filePath).createWriteStream();
+
+        return new WriteStream(_stream, { filePath, params: defaultsDeep(this.options.params, options.params, { storage, Bucket }) });
     }
 
     async deleteFile(filePath, options: any = {}) {
@@ -73,7 +85,7 @@ export class Storage extends AStorage implements StorageInterface {
         const [files] = await storage.bucket(Bucket).getFiles({ prefix: filePath, ...(options.params || {}) });
 
         await files[0]?.delete();
-        debug(`O arquivo ${filePath} foi excluído`);
+        debug(`Deleted file ${filePath}`);
 
         return StorageOutputEnum.Success;
     }

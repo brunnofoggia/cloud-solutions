@@ -4,6 +4,7 @@ secret-baker-secrets.json
 
 # compiled output
 /dist
+/tmp
 /node_modules
 .yarn
 .serverless

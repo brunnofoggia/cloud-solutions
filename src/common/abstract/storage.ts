@@ -9,7 +9,9 @@ export abstract class Storage extends Solution {
         },
     };
 
-    createDirIfNotExists(path) {}
+    createDirIfNotExists(path) {
+        null;
+    }
 
     checkOptions() {
         if (!this.options.Bucket) {

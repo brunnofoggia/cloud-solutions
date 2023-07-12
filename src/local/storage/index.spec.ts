@@ -1,123 +1,144 @@
-import { Fs } from './index';
-import { mockDirPath, mockSubdirPath, mockFileContent, mockFilePath, mockNullDir, mockDirContentList } from '@test/mocks/local/storage.mock';
-import fs from 'fs';
+import dotenv from 'dotenv';
+dotenv.config({ path: 'test/env/local/.env' });
+
+import { Fs } from '.';
+// import { mockDirPath, mockSubdirPath, mockFileContent, mockFilePath, mockNullDir, mockDirContentList } from '@test/mocks/local/storage.mock';
+// import fs from 'fs';
 import path from 'path';
 import { Interface } from 'readline';
 
+import {
+    checkDirectoryContentLength,
+    checkOptions,
+    deleteDirectory,
+    deleteFile,
+    getDirectoryContentLength,
+    readContent,
+    readDirectory,
+    readStream,
+    sendContent,
+    sendStream,
+    toBeDefined,
+} from '@/common/abstract/storage.test';
+import { WriteStream } from './writeStream';
+
 describe('Local Storage', () => {
     let storage: Fs;
-    const baseDir = 'tmp';
-    const basePath = path.join(process.cwd(), baseDir);
 
     beforeAll(() => {
+        const Bucket = process.env.STORAGE_BUCKET;
         const providerOptions = {};
         storage = new Fs(providerOptions);
-        storage.initialize();
+        storage.initialize({ Bucket });
     });
 
     describe('to be defined', () => {
         it('storage', async () => {
-            expect(storage).toBeDefined();
+            await toBeDefined.storage(storage);
         });
     });
 
-    describe('method: sendContent', () => {
-        it('should send content to a file', async () => {
-            await expect(storage.sendContent(mockFilePath, mockFileContent)).resolves.toBeUndefined();
+    describe('specific method: checkOptions', () => {
+        it('should be valid', () => {
+            checkOptions.shouldBeValid(storage);
         });
     });
 
-    describe('method: readContent', () => {
-        it('should return the content', async () => {
-            const value = await storage.readContent(mockFilePath);
-            expect(value).toEqual(mockFileContent);
+    describe('common method: sendContent', () => {
+        it('upload file', async () => {
+            await sendContent.uploadFile(storage);
         });
 
-        it('invalid file path should throw an error', async () => {
-            await expect(storage.readContent('invalid')).rejects.toThrow();
-        });
-    });
-
-    describe('method: readStream', () => {
-        it('should return the interface', async () => {
-            const value = await storage.readStream(mockFilePath);
-            expect(value).toBeInstanceOf(Interface);
+        it('upload file into subdirectory', async () => {
+            await sendContent.uploadFileIntoSubDirectory(storage);
         });
     });
 
-    describe('method: readDirectory', () => {
-        it('should return the content', async () => {
-            const value = await storage.readDirectory();
-            expect(value).toEqual(mockDirContentList);
+    describe('common method: readContent', () => {
+        it('should match content', async () => {
+            await readContent.shouldMatchContent(storage);
         });
 
-        it('should return null', async () => {
-            const value = await storage.readDirectory(mockNullDir);
-            expect(value).toBeNull();
+        it('should throw error for unexistent file', async () => {
+            await readContent.shouldThrowErrorForUnexistentFile(storage);
         });
     });
 
-    describe('method: createDirIfNotExists', () => {
-        it('should create if not exists', () => {
-            const _path = [basePath, mockSubdirPath].join('/');
-            storage.createDirIfNotExists([mockSubdirPath, 'file'].join('/'));
-            expect(fs.existsSync(_path)).toBeTruthy();
+    describe('common method: sendStream', () => {
+        it('should return instance of WriteStream', async () => {
+            await sendStream.shouldReturnInstanceOfWriteStream(storage, WriteStream);
+        });
+
+        it('should send content', async () => {
+            await sendStream.shouldSendContent(storage);
         });
     });
 
-    describe('method: getDirectoryContentLength', () => {
-        it('get directory length', async () => {
-            const value = await storage.getDirectoryContentLength();
-            expect(value).toBeGreaterThan(0);
+    describe('common method: readStream', () => {
+        it('should be instance of Interface', async () => {
+            await readStream.shouldReturnInstanceOfInterface(storage, Interface);
         });
 
-        it('get directory length', async () => {
-            const value = await storage.getDirectoryContentLength(mockDirPath);
-            expect(value).toBeGreaterThan(0);
-        });
-
-        it('should get no content length from unexistent directory', async () => {
-            const value = await storage.getDirectoryContentLength('unexistent');
-            expect(value).toEqual(0);
+        it('should match content', async () => {
+            await readStream.shouldMatchContent(storage);
         });
     });
 
-    describe('method: checkDirectoryContentLength', () => {
-        it('check if root dir exists', async () => {
-            const value = await storage.checkDirectoryContentLength();
-            expect(value).toBeTruthy();
+    describe('common method: readDirectory', () => {
+        it('should have content', async () => {
+            await readDirectory.shouldHaveContent(storage);
         });
 
-        it('check if some dir exists', async () => {
-            const value = await storage.checkDirectoryContentLength(mockDirPath);
-            expect(value).toBeTruthy();
+        it('should match content list', async () => {
+            await readDirectory.shouldMatchContentList(storage);
         });
 
-        it('check unexistent dir', async () => {
-            const value = await storage.checkDirectoryContentLength(mockNullDir);
-            expect(value).toBeFalsy();
+        it('should have nothing', async () => {
+            await readDirectory.shouldHaveNothing(storage);
         });
     });
 
-    describe('method: deleteFile', () => {
-        it('should delete the file', async () => {
-            const _path = [basePath, mockFilePath].join('/');
-            await storage.deleteDirectory(mockFilePath);
-            expect(fs.existsSync(_path)).toBeFalsy();
+    describe('common method: getDirectoryContentLength', () => {
+        it('should have something into rootdir', async () => {
+            await getDirectoryContentLength.shouldHaveSomethingIntoRootdir(storage);
+        });
+
+        it('should have something into dir', async () => {
+            await getDirectoryContentLength.shouldHaveSomethingIntoDir(storage);
+        });
+
+        it('should have nothing into unexistent directory', async () => {
+            await getDirectoryContentLength.shouldHaveNothingIntoUnexistentDirectory(storage);
         });
     });
 
-    describe('method: deleteDirectory', () => {
-        it('should delete the directory', async () => {
-            const _path = [basePath, mockDirPath].join('/');
-            await storage.deleteDirectory(mockDirPath);
-            expect(fs.existsSync(_path)).toBeFalsy();
+    describe('common method: checkDirectoryContentLength', () => {
+        it('should exist rootdir', async () => {
+            await checkDirectoryContentLength.shouldExistRootdir(storage);
         });
 
-        it('should omit delete directory', async () => {
-            const _path = [basePath, mockDirPath].join('/');
-            await storage.deleteDirectory(mockDirPath);
-            expect(fs.existsSync(_path)).toBeFalsy();
+        it('should exist dir', async () => {
+            await checkDirectoryContentLength.shouldExistDir(storage);
+        });
+
+        it('should not exist', async () => {
+            await checkDirectoryContentLength.shouldNotExist(storage);
+        });
+    });
+
+    describe('common method: deleteFile', () => {
+        it('should do', async () => {
+            await deleteFile.shouldDo(storage);
+        });
+    });
+
+    describe('common method: deleteDirectory', () => {
+        it('should delete recursively', async () => {
+            await deleteDirectory.shouldDeleteRecursively(storage);
+        });
+
+        it('should omit deletion of unexistent directory', async () => {
+            await deleteDirectory.shouldOmitDeletionOfUnexistentDirectory(storage);
         });
     });
 });

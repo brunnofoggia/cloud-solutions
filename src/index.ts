@@ -4,10 +4,9 @@ import { SolutionEnum } from './common/types/solution.enum';
 import { ProviderEnum } from './common/types/provider.enum';
 import { StorageOutputEnum } from './common/types/storageOutput.enum';
 
-
 import Aws from './aws';
 import Local from './local';
-import { RabbitMQ } from './rabbitmq';
+import { RabbitMQ } from './thirdparty/rabbitmq';
 
 import { EventsInterface, HandlerOptionsInterface } from './common/interfaces/events.interface';
 import { SecretsInterface } from './common/interfaces/secrets.interface';
@@ -42,5 +41,5 @@ export {
     HandlerOptionsInterface,
     SecretsInterface,
     SolutionsInterface,
-    StorageInterface
+    StorageInterface,
 };

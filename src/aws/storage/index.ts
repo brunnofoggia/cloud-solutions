@@ -78,7 +78,7 @@ export class S3 extends AStorage implements StorageInterface {
         };
 
         await storage.upload(uploadParams, options.params || {}).promise();
-        debug(`Os dados foram escritos em ${filePath}`);
+        debug(`File sent to ${filePath}`);
     }
 
     sendStream(filePath, options: any = {}) {
@@ -115,7 +115,7 @@ export class S3 extends AStorage implements StorageInterface {
                 Key: filePath,
             })
             .promise();
-        debug(`O arquivo ${filePath} foi excluído`);
+        debug(`Delete file ${filePath}`);
 
         return StorageOutputEnum.Success;
     }
@@ -151,7 +151,7 @@ export class S3 extends AStorage implements StorageInterface {
                     .promise();
             }
         } catch (error) {
-            error;
+            return StorageOutputEnum.NotFound;
         }
 
         return StorageOutputEnum.Success;

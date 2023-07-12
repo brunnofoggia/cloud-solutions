@@ -4,8 +4,8 @@ const debug = _debug('solutions:storage:fs');
 import path from 'path';
 import { createInterface } from 'readline';
 import fs from 'fs/promises';
-import { createReadStream, existsSync, mkdirSync } from 'fs';
-import { map } from 'lodash';
+import { createReadStream, existsSync, lstatSync, mkdirSync } from 'fs';
+import { each, map } from 'lodash';
 
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
 import { StorageInterface } from '../../common/interfaces/storage.interface';
@@ -17,6 +17,21 @@ export class Fs extends Storage implements StorageInterface {
         basePath: path.join(process.cwd(), 'tmp'),
         baseDir: 'tmp',
     };
+
+    setOptions(options: any = {}) {
+        super.setOptions(options);
+        if (this.options.Bucket) {
+            this.options.baseDir += '/' + this.options.Bucket;
+            this.options.basePath += '/' + this.options.Bucket;
+        }
+    }
+
+    checkOptions() {
+        if (!this.options.Bucket) {
+            throw new Error('Missing option "Bucket" for storage solution');
+        }
+        return true;
+    }
 
     async readContent(filePath, options: any = {}) {
         this.isInitialized();
@@ -56,9 +71,9 @@ export class Fs extends Storage implements StorageInterface {
 
             this.createDirIfNotExists(_path);
             await fs.writeFile(_path, content);
-            debug(`Os dados foram escritos em ${filePath}`);
+            debug(`File sent to ${filePath}`);
         } catch (error) {
-            debug(`Erro ao escrever os dados em ${filePath}: ${error}`);
+            debug(`Fail sending file ${filePath}: ${error}`);
         }
     }
 
@@ -72,10 +87,10 @@ export class Fs extends Storage implements StorageInterface {
         try {
             _path = path.join(options.basePath || this.options.basePath, filePath);
             await fs.rm(_path, { force: true });
-            debug(`O arquivo ${_path} foi excluído`);
+            debug(`Deleted file ${_path}`);
             return StorageOutputEnum.Success;
         } catch (error) {
-            debug(`Erro ao excluir o arquivo ${_path}: ${error}`);
+            debug(`Warning: Fail deleting file ${_path}: ${error}`);
             return StorageOutputEnum.NotFound;
         }
     }
@@ -86,24 +101,36 @@ export class Fs extends Storage implements StorageInterface {
         try {
             _path = path.join(options.basePath || this.options.basePath, directoryPath);
             await fs.rm(_path, { recursive: true, force: true });
-            debug(`O diretório ${_path} foi excluído`);
+            debug(`Deleted directory ${_path}`);
             return StorageOutputEnum.Success;
         } catch (error) {
-            debug(`Erro ao excluir o diretório ${_path}: ${error}`);
+            debug(`Warning: Fail deleting directory ${_path}: ${error}`);
             return StorageOutputEnum.NotFound;
         }
     }
 
-    async readDirectory(directoryPath = '', options: any = {}) {
+    async readDirectory(directoryPath = '', options: any = {}): Promise<any> {
         this.isInitialized();
         let _path;
         try {
             _path = path.join(options.basePath || this.options.basePath, directoryPath);
             const objects = await fs.readdir(_path);
-            return map(objects, (name) => [directoryPath, name].join('/'));
+            const list = [];
+
+            for (const name of objects) {
+                const itemFullpath = path.join(options.basePath || this.options.basePath, directoryPath, name);
+                const itemPath = [directoryPath, name].join('/');
+                if (!lstatSync(itemFullpath).isDirectory()) {
+                    list.push(itemPath);
+                    continue;
+                }
+                list.push(...(await this.readDirectory(itemPath, options)));
+            }
+
+            return list;
         } catch (error) {
-            if (!options.silent) debug(`Erro ao ler o diretório ${_path}`, error);
-            return null;
+            if (!options.silent) debug(`Fail reading directory ${_path}`, error);
+            return [];
         }
     }
 
