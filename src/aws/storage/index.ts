@@ -14,6 +14,9 @@ import { WriteStream } from './writeStream';
 
 export class S3 extends AStorage implements StorageInterface {
     protected instance;
+    // protected libraries = {
+    //     AWS: 'aws-sdk',
+    // };
 
     async initialize(options: any = {}) {
         super.initialize(options);
