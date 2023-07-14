@@ -1,9 +1,8 @@
-import aws from 'aws-sdk';
-
 import { ParameterStore } from './secrets/index';
 import { S3 } from './storage/index';
 import { SQS } from './events/index';
 import { SolutionsEnum } from './solutions';
+import { Solution } from '@/common/abstract/solution';
 
 export const StorageAdapter = S3;
 export const SecretsAdapter = ParameterStore;
@@ -20,20 +19,22 @@ export const keyFields = { user: 'accessKeyId', pass: 'secretAccessKey', region:
 }
  */
 
-export const providerConfig = (options: any = {}) => {
-    if (!options.region ||
-        !options.user ||
-        !options.pass) {
+export const providerConfig = async (options: any = {}) => {
+    if (!options.region || !options.user || !options.pass) {
         throw new Error('Missing some data into cloud credentials. Received: ' + JSON.stringify(options));
     }
-
+    const { AWS } = await Solution.loadLibraries(libraries);
     const _config = {
         region: options.region,
         accessKeyId: options.user,
         secretAccessKey: options.pass,
     };
-    aws.config.update(_config);
-    aws.config.region = _config.region;
+    AWS.config.update(_config);
+    AWS.config.region = _config.region;
 };
 
-export default { StorageAdapter, SecretsAdapter, EventsAdapter, SolutionsEnum, providerConfig };
+export const libraries = {
+    AWS: 'aws-sdk',
+};
+
+export default { StorageAdapter, SecretsAdapter, EventsAdapter, SolutionsEnum, providerConfig, libraries };

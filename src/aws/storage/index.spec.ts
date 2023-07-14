@@ -25,7 +25,7 @@ import {
 describe('Aws Storage', () => {
     let storage: S3;
 
-    beforeAll(() => {
+    beforeAll(async () => {
         const providerOptions = {
             region: process.env.CLOUD_REGION,
             user: process.env.CLOUD_USER,
@@ -33,7 +33,7 @@ describe('Aws Storage', () => {
         };
         const Bucket = process.env.STORAGE_BUCKET;
         storage = new S3(providerOptions);
-        storage.initialize({ Bucket });
+        await storage.initialize({ Bucket });
     });
 
     describe('to be defined', () => {
@@ -43,14 +43,14 @@ describe('Aws Storage', () => {
     });
 
     describe('specific method: getInstance', () => {
-        it('should be instance of AWS.S3', () => {
-            getInstance.shouldBeInstanceOf(storage, AWS.S3);
+        it('should be instance of AWS.S3', async () => {
+            await getInstance.shouldBeInstanceOf(storage, AWS.S3);
         });
     });
 
     describe('specific method: createInstance', () => {
-        it('value should be instance of AWS.S3', () => {
-            createInstance.shouldBeInstanceOf(storage, AWS.S3);
+        it('value should be instance of AWS.S3', async () => {
+            await createInstance.shouldBeInstanceOf(storage, AWS.S3);
         });
     });
 

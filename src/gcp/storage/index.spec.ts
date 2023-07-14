@@ -24,7 +24,7 @@ import { WriteStream } from './writeStream';
 describe('Gcp Storage', () => {
     let storage: Storage;
 
-    beforeAll(() => {
+    beforeAll(async () => {
         const providerOptions = {
             region: process.env.CLOUD_REGION,
             user: process.env.CLOUD_USER,
@@ -34,7 +34,7 @@ describe('Gcp Storage', () => {
         const Bucket = process.env.STORAGE_BUCKET;
 
         storage = new Storage(providerOptions);
-        storage.initialize({ Bucket });
+        await storage.initialize({ Bucket });
     });
 
     describe('to be defined', () => {
@@ -53,14 +53,14 @@ describe('Gcp Storage', () => {
     });
 
     describe('specific method: getInstance', () => {
-        it('should be instance of GStorage', () => {
-            getInstance.shouldBeInstanceOf(storage, GStorage);
+        it('should be instance of GStorage', async () => {
+            await getInstance.shouldBeInstanceOf(storage, GStorage);
         });
     });
 
     describe('specific method: createInstance', () => {
-        it('value should be instance of GStorage', () => {
-            createInstance.shouldBeInstanceOf(storage, GStorage);
+        it('value should be instance of GStorage', async () => {
+            await createInstance.shouldBeInstanceOf(storage, GStorage);
         });
     });
 

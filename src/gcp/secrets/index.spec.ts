@@ -7,7 +7,7 @@ dotenv.config({ path: 'test/env/gcp/.env' });
 describe('Gcp Secrets', () => {
     let secrets: SecretManager;
 
-    beforeAll(() => {
+    beforeAll(async () => {
         const providerOptions = {
             region: process.env.CLOUD_REGION,
             user: process.env.CLOUD_USER,
@@ -15,7 +15,7 @@ describe('Gcp Secrets', () => {
             project: process.env.CLOUD_PROJECT,
         };
         secrets = new SecretManager(providerOptions);
-        secrets.initialize();
+        await secrets.initialize();
     });
 
     describe('to be defined', () => {
@@ -51,7 +51,7 @@ describe('Gcp Secrets', () => {
 
     describe('method: createInstance', () => {
         it('value should be instance of SecretManager', async () => {
-            const value = secrets.createInstance();
+            const value = await secrets.createInstance();
             expect(value).toBeInstanceOf(SecretManagerServiceClient);
         });
     });

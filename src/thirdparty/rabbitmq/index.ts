@@ -1,4 +1,3 @@
-import amqplib from 'amqplib';
 import _debug from 'debug';
 const debug = _debug('solutions:events');
 
@@ -6,10 +5,25 @@ import { sleep } from '../../common/utils/index';
 import { EventsInterface } from '../../common/interfaces/events.interface';
 import { Events } from '../../common/abstract/events';
 
+let amqplib;
 export class RabbitMQ extends Events implements EventsInterface {
+    protected libraries = {
+        amqplib: 'amqplib',
+    };
     private connection = null;
     private channel = null;
     private _reconnecting = false;
+
+    async initialize(options: any = {}) {
+        await super.initialize(options);
+        amqplib = this.getLibrary('amqplib');
+        this.options.isConsumer = options.isConsumer || true;
+
+        await this.connect();
+        await this.createChannel();
+        this.options.loadQueues && (await this.options.loadQueues(this));
+        this._reconnecting = false;
+    }
 
     private async connect() {
         try {
@@ -84,16 +98,6 @@ export class RabbitMQ extends Events implements EventsInterface {
 
         this._reconnecting = true;
         await this.initialize(this.options);
-    }
-
-    async initialize(options: any = {}) {
-        this.setOptions(options);
-        this.options.isConsumer = options.isConsumer || true;
-
-        await this.connect();
-        await this.createChannel();
-        this.options.loadQueues && (await this.options.loadQueues(this));
-        this._reconnecting = false;
     }
 
     async loadQueue(_name, _handler) {

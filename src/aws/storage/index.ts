@@ -2,45 +2,43 @@ import _debug from 'debug';
 const debug = _debug('solutions:storage:aws');
 
 import { omit, intersection, keys, map } from 'lodash';
-import AWS from 'aws-sdk';
 import { createInterface } from 'readline';
 import stream from 'stream';
 
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
 import { StorageInterface } from '../../common/interfaces/storage.interface';
 import { Storage as AStorage } from '../../common/abstract/storage';
-import { providerConfig, keyFields } from '../index';
+import { providerConfig, keyFields, libraries } from '../index';
 import { WriteStream } from './writeStream';
 
 export class S3 extends AStorage implements StorageInterface {
+    protected libraries = libraries;
     protected instance;
-    // protected libraries = {
-    //     AWS: 'aws-sdk',
-    // };
 
     async initialize(options: any = {}) {
-        super.initialize(options);
+        await super.initialize(options);
         this.checkOptions();
-        this.instance = this.createInstance(options);
+        this.instance = await this.createInstance(options);
     }
 
-    getInstance(options: any = {}) {
+    async getInstance(options: any = {}) {
         if (intersection(keys(options), keys(keyFields)).length > 0) {
-            const instance = this.createInstance(options);
-            providerConfig(this.getProviderOptions(keyFields));
+            const instance = await this.createInstance(options);
+            await providerConfig(this.getProviderOptions(keyFields));
             return instance;
         }
         return this.instance;
     }
 
-    createInstance(options: any = {}) {
-        providerConfig(this.mergeProviderOptions(options, keyFields));
+    async createInstance(options: any = {}) {
+        await providerConfig(this.mergeProviderOptions(options, keyFields));
+        const AWS = this.getLibrary('AWS');
         return new AWS.S3({});
     }
 
     async readContent(path, options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(options);
+        const storage = await this.getInstance(options);
 
         const storageParams = {
             ...this.mergeStorageOptions(options, keyFields),
@@ -53,7 +51,7 @@ export class S3 extends AStorage implements StorageInterface {
 
     async readStream(path, options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(options);
+        const storage = await this.getInstance(options);
 
         const storageParams = {
             ...this.mergeStorageOptions(options, keyFields),
@@ -71,7 +69,7 @@ export class S3 extends AStorage implements StorageInterface {
 
     async _sendContent(filePath, content, options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(options);
+        const storage = await this.getInstance(options);
 
         // Configura as opções do upload
         const uploadParams = {
@@ -84,9 +82,9 @@ export class S3 extends AStorage implements StorageInterface {
         debug(`File sent to ${filePath}`);
     }
 
-    sendStream(filePath, options: any = {}) {
+    async sendStream(filePath, options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(options);
+        const storage = await this.getInstance(options);
 
         const _stream = new stream.PassThrough();
         // Configura as opções do upload
@@ -111,7 +109,7 @@ export class S3 extends AStorage implements StorageInterface {
 
     async deleteFile(filePath, options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(options);
+        const storage = await this.getInstance(options);
         await storage
             .deleteObject({
                 ...omit(this.getOptions(), 'params'),
@@ -125,7 +123,7 @@ export class S3 extends AStorage implements StorageInterface {
 
     async deleteDirectory(directoryPath, options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(options);
+        const storage = await this.getInstance(options);
 
         try {
             const objects = await storage
@@ -162,13 +160,13 @@ export class S3 extends AStorage implements StorageInterface {
 
     async readDirectory(directoryPath = '', _options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(_options);
+        const storage = await this.getInstance(_options);
 
         const options: any = this.mergeStorageOptions(_options, keyFields);
         directoryPath && (options.Prefix = directoryPath);
 
         const objects = await storage.listObjectsV2(options).promise();
 
-        return map(objects?.Contents, (item) => item.Key);
+        return map(objects?.Contents || [], (item) => item?.Key);
     }
 }

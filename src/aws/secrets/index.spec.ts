@@ -9,14 +9,14 @@ dotenv.config({ path: 'test/env/aws/.env' });
 describe('Aws Secrets', () => {
     let secrets: ParameterStore;
 
-    beforeAll(() => {
+    beforeAll(async () => {
         const providerOptions = {
             region: process.env.CLOUD_REGION,
             user: process.env.CLOUD_USER,
             pass: process.env.CLOUD_PASS,
         };
         secrets = new ParameterStore(providerOptions);
-        secrets.initialize();
+        await secrets.initialize();
     });
 
     describe('to be defined', () => {
@@ -27,14 +27,14 @@ describe('Aws Secrets', () => {
 
     describe('method: getInstance', () => {
         it('value should be instance of AWS SSM', async () => {
-            const value = secrets.getInstance();
+            const value = await secrets.getInstance();
             expect(value).toBeInstanceOf(AWS.SSM);
         });
     });
 
     describe('method: createInstance', () => {
         it('value should be instance of AWS SSM', async () => {
-            const value = secrets.createInstance();
+            const value = await secrets.createInstance();
             expect(value).toBeInstanceOf(AWS.SSM);
         });
     });

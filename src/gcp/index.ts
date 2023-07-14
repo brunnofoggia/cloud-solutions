@@ -9,12 +9,12 @@ export const SecretsAdapter = SecretManager;
 
 export const keyFields = { user: 'client_email', pass: 'private_key', region: 'region' };
 
-export const providerConfig = (options: any = {}): any => {
+export const providerConfig = async (options: any = {}) => {
     return {
         credentials: {
             client_email: options.user,
             private_key: options.pass,
-        }
+        },
     };
 };
 
@@ -23,5 +23,5 @@ export default {
     SecretsAdapter,
     // EventsAdapter,
     SolutionsEnum,
-    providerConfig
+    providerConfig,
 };

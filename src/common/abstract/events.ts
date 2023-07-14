@@ -1,4 +1,3 @@
-
 import _debug from 'debug';
 const debug = _debug('solutions:events');
 
@@ -35,8 +34,7 @@ export abstract class Events extends Solution {
     formatMessageBody(message) {
         const body = this.getMessageBody(message);
         try {
-            if (/^[[{]/.test(body))
-                return JSON.parse(body);
+            if (/^[[{]/.test(body)) return JSON.parse(body);
             return body;
         } catch (error) {
             debug('formatMessageBody:', error.message);
@@ -50,12 +48,11 @@ export abstract class Events extends Solution {
         try {
             const result = await handler(body, {
                 events: options.events,
-                name
+                name,
             });
-            if (result !== false)
-                return this.ack(name, message, options);
+            if (result !== false) return await this.ack(name, message, options);
         } catch (error) {
-            this.nack(name, message, options);
+            await this.nack(name, message, options);
             debug(`@${process.pid} Error on Queue:`);
             debug(`Code: ${error.code}; Status: ${error.status}; Message: ${error.message}`);
             if (options.events.getOptions().throwError) {
@@ -64,7 +61,7 @@ export abstract class Events extends Solution {
             }
             return;
         }
-        this.nack(name, message, options);
+        await this.nack(name, message, options);
     }
 
     formatQueueName(_name) {

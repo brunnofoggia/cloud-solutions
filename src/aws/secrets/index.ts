@@ -1,12 +1,13 @@
-import AWS from 'aws-sdk';
 import { intersection, keys } from 'lodash';
 
 import { Secrets } from '../../common/abstract/secrets';
 import { SecretsInterface } from '../../common/interfaces/secrets.interface';
-import { providerConfig, keyFields } from '../index';
+import { providerConfig, keyFields, libraries } from '../index';
 import { decryptSecretData } from './functions/kms';
 
+let AWS;
 export class ParameterStore extends Secrets implements SecretsInterface {
+    protected libraries = libraries;
     public defaultOptions: any = {
         cache: true,
         WithDecryption: true,
@@ -14,21 +15,22 @@ export class ParameterStore extends Secrets implements SecretsInterface {
     protected instance;
 
     async initialize(options: any = {}) {
-        super.initialize(options);
-        this.instance = this.createInstance(options);
+        await super.initialize(options);
+        AWS = this.getLibrary('AWS');
+        this.instance = await this.createInstance(options);
     }
 
-    getInstance(options: any = {}) {
+    async getInstance(options: any = {}) {
         if (intersection(keys(options), keys(keyFields)).length > 0) {
-            const instance = this.createInstance(options);
-            providerConfig(this.getProviderOptions(keyFields));
+            const instance = await this.createInstance(options);
+            await providerConfig(this.getProviderOptions(keyFields));
             return instance;
         }
         return this.instance;
     }
 
-    createInstance(options: any = {}) {
-        providerConfig(this.mergeProviderOptions(options, keyFields));
+    async createInstance(options: any = {}) {
+        await providerConfig(this.mergeProviderOptions(options, keyFields));
         return new AWS.SSM({});
     }
 
@@ -37,7 +39,7 @@ export class ParameterStore extends Secrets implements SecretsInterface {
         if (param?.Value && param?.ARN) {
             let data = param.Value;
             if (!this.getOptions().WithDecryption) {
-                data = await decryptSecretData(param.Value, param.ARN);
+                data = await decryptSecretData(param.Value, param.ARN, AWS);
             }
             return data;
         } else {
@@ -46,7 +48,7 @@ export class ParameterStore extends Secrets implements SecretsInterface {
     }
 
     async request(methodName, parameters) {
-        const service = this.getInstance();
+        const service = await this.getInstance();
         const parameterPromise = service[methodName](parameters).promise();
 
         return await parameterPromise;

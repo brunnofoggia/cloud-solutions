@@ -2,7 +2,6 @@ import _debug from 'debug';
 const debug = _debug('solutions:storage:gcp');
 
 import { defaultsDeep, intersection, keys } from 'lodash';
-import { Storage as GStorage } from '@google-cloud/storage';
 import { createInterface } from 'readline';
 
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
@@ -11,25 +10,33 @@ import { Storage as AStorage } from '../../common/abstract/storage';
 import { providerConfig, keyFields } from '../index';
 import { WriteStream } from './writeStream';
 
+let GStorage;
 export class Storage extends AStorage implements StorageInterface {
+    protected libraries = {
+        GStorage: {
+            path: '@google-cloud/storage',
+            key: 'Storage',
+        },
+    };
     protected instance;
 
     async initialize(options: any = {}) {
-        super.initialize(options);
+        await super.initialize(options);
+        GStorage = this.getLibrary('GStorage');
         this.checkOptions();
-        this.instance = this.createInstance(options);
+        this.instance = await this.createInstance(options);
     }
 
-    getInstance(options: any = {}) {
+    async getInstance(options: any = {}) {
         if (intersection(keys(options), keys(keyFields)).length > 0) {
-            const instance = this.createInstance(options);
+            const instance = await this.createInstance(options);
             return instance;
         }
         return this.instance;
     }
 
-    createInstance(options: any = {}) {
-        const config = providerConfig(this.mergeProviderOptions(options, keyFields));
+    async createInstance(options: any = {}) {
+        const config = await providerConfig(this.mergeProviderOptions(options, keyFields));
 
         const instance = new GStorage({
             ...config,
@@ -40,7 +47,7 @@ export class Storage extends AStorage implements StorageInterface {
 
     async readContent(path, options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(options);
+        const storage = await this.getInstance(options);
         const Bucket = options.Bucket || this.getOptions().Bucket;
         const [fileContent] = await storage.bucket(Bucket).file(path).download();
         return fileContent?.toString(options.charset || 'utf-8');
@@ -48,7 +55,7 @@ export class Storage extends AStorage implements StorageInterface {
 
     async readStream(path, options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(options);
+        const storage = await this.getInstance(options);
         const Bucket = options.Bucket || this.getOptions().Bucket;
 
         const data = storage.bucket(Bucket).file(path).createReadStream();
@@ -62,15 +69,15 @@ export class Storage extends AStorage implements StorageInterface {
 
     async _sendContent(filePath, content, options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(options);
+        const storage = await this.getInstance(options);
         const Bucket = options.Bucket || this.getOptions().Bucket;
         await storage.bucket(Bucket).file(filePath).save(content);
         debug(`File sent to ${filePath}`);
     }
 
-    sendStream(filePath, options: any = {}) {
+    async sendStream(filePath, options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(options);
+        const storage = await this.getInstance(options);
         const Bucket = options.Bucket || this.getOptions().Bucket;
 
         const _stream = storage.bucket(Bucket).file(filePath).createWriteStream();
@@ -80,7 +87,7 @@ export class Storage extends AStorage implements StorageInterface {
 
     async deleteFile(filePath, options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(options);
+        const storage = await this.getInstance(options);
         const Bucket = options.Bucket || this.getOptions().Bucket;
         const [files] = await storage.bucket(Bucket).getFiles({ prefix: filePath, ...(options.params || {}) });
 
@@ -92,7 +99,7 @@ export class Storage extends AStorage implements StorageInterface {
 
     async deleteDirectory(directoryPath, options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(options);
+        const storage = await this.getInstance(options);
 
         try {
             const Bucket = options.Bucket || this.getOptions().Bucket;
@@ -118,7 +125,7 @@ export class Storage extends AStorage implements StorageInterface {
 
     async readDirectory(directoryPath = '', options: any = {}) {
         this.isInitialized();
-        const storage = this.getInstance(options);
+        const storage = await this.getInstance(options);
         const Bucket = options.Bucket || this.getOptions().Bucket;
 
         const fileOptions: any = defaultsDeep({ prefix: directoryPath }, options.params || {});

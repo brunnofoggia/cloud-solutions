@@ -23,11 +23,11 @@ import { WriteStream } from './writeStream';
 describe('Local Storage', () => {
     let storage: Fs;
 
-    beforeAll(() => {
+    beforeAll(async () => {
         const Bucket = process.env.STORAGE_BUCKET;
         const providerOptions = {};
         storage = new Fs(providerOptions);
-        storage.initialize({ Bucket });
+        await storage.initialize({ Bucket });
     });
 
     describe('to be defined', () => {

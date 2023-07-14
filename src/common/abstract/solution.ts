@@ -1,7 +1,8 @@
-import { defaults, defaultsDeep, keys, omit, omitBy, pick } from 'lodash';
+import { cloneDeep, defaults, defaultsDeep, keys, omit, omitBy, pick } from 'lodash';
 
 export class Solution {
-    // protected libraries: any = {};
+    protected libraries: any = {};
+    protected libraryImport: any = {};
     protected providerOptions: any = {};
     protected options: any = {};
     protected defaultOptions: any = {};
@@ -29,21 +30,13 @@ export class Solution {
 
     async initialize(options: any = {}) {
         this.setOptions(options);
-        // await this.loadLibraries();
+        await this.loadLibraries();
         this.options.initialized = true;
     }
 
     isInitialized() {
         if (!this.options.initialized) throw new Error('Nao se esqueça de executar o método "initialized" de cada solução da fábrica');
     }
-
-    // async loadLibraries() {
-    //     for (const libName in this.libraries) {
-    //         let libConfig = this.libraries[libName];
-    //         typeof libConfig === 'string' && (libConfig = { path: libConfig });
-    //         this[libName] = (await import(libConfig.path))[libConfig.key || 'default'];
-    //     }
-    // }
 
     mergeProviderOptions(options = {}, keyFields) {
         return defaults(
@@ -54,5 +47,46 @@ export class Solution {
 
     getProviderOptions(keyFields) {
         return pick(this.providerOptions, ...keys(keyFields));
+    }
+
+    /* libraries */
+    async loadLibraries() {
+        this.libraryImport = await Solution.loadLibraries(this.libraries);
+    }
+
+    static async loadLibraries(_libraries) {
+        const libraries = Solution.prepareLibrariesConfig(_libraries);
+        const libraryImport: any = {};
+        for (const alias in libraries) {
+            const config = libraries[alias];
+            libraryImport[alias] = await Solution.loadLibrary(config);
+        }
+
+        return libraryImport;
+    }
+
+    static async loadLibrary(config) {
+        return (await import(config.path))[config.key || 'default'];
+    }
+
+    static prepareLibrariesConfig(_libraries) {
+        const libraries = cloneDeep(_libraries);
+        const librariesConfig: any = {};
+        for (const alias in libraries) {
+            let libConfig = libraries[alias];
+            typeof libConfig === 'string' && (libConfig = { path: libConfig });
+
+            librariesConfig[alias] = libConfig;
+        }
+        return librariesConfig;
+    }
+
+    static prepareLibraryConfig(_config) {
+        const config = typeof _config === 'string' ? { path: _config } : _config;
+        return config;
+    }
+
+    getLibrary(alias) {
+        return this.libraryImport[alias];
     }
 }

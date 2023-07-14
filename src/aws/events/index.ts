@@ -1,4 +1,3 @@
-import AWS from 'aws-sdk';
 import _ from 'lodash';
 import _debug from 'debug';
 const debug = _debug('solutions:events');
@@ -6,9 +5,11 @@ const debug = _debug('solutions:events');
 import { sleep } from '../../common/utils/index';
 import { EventsInterface } from '../../common/interfaces/events.interface';
 import { Events } from '../../common/abstract/events';
-import { keyFields, providerConfig } from '../index';
+import { keyFields, libraries, providerConfig } from '../index';
 
+let AWS;
 export class SQS extends Events implements EventsInterface {
+    protected libraries = libraries;
     public defaultOptions: any = {
         ...Events.prototype.defaultOptions,
         listenInterval: 1000,
@@ -23,51 +24,46 @@ export class SQS extends Events implements EventsInterface {
     protected snsInstance;
 
     async initialize(options: any = {}) {
-        super.initialize(options);
+        await super.initialize(options);
+        AWS = this.getLibrary('AWS');
         this.checkOptions();
 
-        this.instance = this.createInstance(options);
-        this.snsInstance = this.createSNSInstance(options);
+        this.instance = await this.createInstance(options);
+        this.snsInstance = await this.createSNSInstance(options);
 
         this.options.topicArn = await this.createTopic(this.options.topicName);
         this.options.loadQueues && (await this.options.loadQueues(this));
         // this._reconnecting = false;
     }
 
-    getInstance(options: any = {}) {
+    async getInstance(options: any = {}) {
         if (_.intersection(_.keys(options), _.keys(keyFields)).length > 0) {
-            const instance = this.createInstance(options);
-            providerConfig(_.pick(this.providerOptions, ..._.keys(keyFields)));
+            const instance = await this.createInstance(options);
+            await providerConfig(_.pick(this.providerOptions, ..._.keys(keyFields)));
             return instance;
         }
         return this.instance;
     }
 
-    createInstance(options: any = {}) {
-        providerConfig(_.defaults(
-            _.pick(options, ..._.keys(keyFields)),
-            _.pick(this.providerOptions, ..._.keys(keyFields)),
-        ));
+    async createInstance(options: any = {}) {
+        await providerConfig(_.defaults(_.pick(options, ..._.keys(keyFields)), _.pick(this.providerOptions, ..._.keys(keyFields))));
 
         const instance = new AWS.SQS({});
 
         return instance;
     }
 
-    getSNSInstance(options: any = {}) {
+    async getSNSInstance(options: any = {}) {
         if (_.intersection(_.keys(options), _.keys(keyFields)).length > 0) {
-            const instance = this.createSNSInstance(options);
-            providerConfig(_.pick(this.providerOptions, ..._.keys(keyFields)));
+            const instance = await this.createSNSInstance(options);
+            await providerConfig(_.pick(this.providerOptions, ..._.keys(keyFields)));
             return instance;
         }
         return this.snsInstance;
     }
 
-    createSNSInstance(options: any = {}) {
-        providerConfig(_.defaults(
-            _.pick(options, ..._.keys(keyFields)),
-            _.pick(this.providerOptions, ..._.keys(keyFields)),
-        ));
+    async createSNSInstance(options: any = {}) {
+        await providerConfig(_.defaults(_.pick(options, ..._.keys(keyFields)), _.pick(this.providerOptions, ..._.keys(keyFields))));
 
         const instance = new AWS.SNS({});
 
@@ -99,27 +95,23 @@ export class SQS extends Events implements EventsInterface {
             QueueUrl: this.queueUrls[_name],
         };
 
-        if (this.options.maxNumberOfMessages)
-            params.MaxNumberOfMessages = +this.options.maxNumberOfMessages;
+        if (this.options.maxNumberOfMessages) params.MaxNumberOfMessages = +this.options.maxNumberOfMessages;
 
         return params;
     }
 
     async listener(_name, _handler) {
-        const sqs = this.getInstance();
+        const sqs = await this.getInstance();
 
         const params = this.buildListenerParams(_name);
 
         sqs.receiveMessage(params, (error, data) => {
             if (error) {
                 debug('loadQueue:receiveMessage', error.message);
-                if (this.options.throwError)
-                    throw error;
-            }
-            else {
+                if (this.options.throwError) throw error;
+            } else {
                 if (data?.Messages?.length)
-                    for (const index in data.Messages)
-                        this.receiveMessage(_name, _handler, data.Messages[index], { events: this });
+                    for (const index in data.Messages) this.receiveMessage(_name, _handler, data.Messages[index], { events: this });
             }
         });
         await sleep(this.options.listenInterval);
@@ -129,18 +121,17 @@ export class SQS extends Events implements EventsInterface {
     _sendToQueue(_name, data) {
         const name = this.formatQueueName(_name);
         return new Promise((resolve, reject) => {
-            this.getQueueUrl(name).then((queueUrl) => {
+            this.getQueueUrl(name).then(async (queueUrl) => {
                 const params = {
                     MessageBody: typeof data === 'object' ? JSON.stringify(data) : data + '',
-                    QueueUrl: queueUrl
+                    QueueUrl: queueUrl,
                 };
 
-                const sqs = this.getInstance();
+                const sqs = await this.getInstance();
                 sqs.sendMessage(params, (error, data) => {
                     if (error) {
                         debug('_sendToQueue:', 'Erro ao enviar mensagem para a fila:', error.message);
-                        if (this.options.throwError)
-                            throw error;
+                        if (this.options.throwError) throw error;
                     } else {
                         debug('_sendToQueue:', 'Mensagem enviada com sucesso:', data.MessageId);
                         resolve(true);
@@ -150,26 +141,25 @@ export class SQS extends Events implements EventsInterface {
         });
     }
 
-    ack(name, message, options) {
+    async ack(name, message, options) {
         // Deleta a mensagem da fila
         const deleteParams = {
             QueueUrl: this.queueUrls[name],
-            ReceiptHandle: message.ReceiptHandle
+            ReceiptHandle: message.ReceiptHandle,
         };
 
-        const sqs = this.getInstance();
+        const sqs = await this.getInstance();
         sqs.deleteMessage(deleteParams, (error, data) => {
             if (error) {
                 debug('ack:', error.message);
-                if (this.options.throwError)
-                    throw error;
+                if (this.options.throwError) throw error;
             } else {
                 debug(`Mensagem ${message.MessageId} deletada da fila`);
             }
         });
     }
 
-    nack(name, message, options) {
+    async nack(name, message, options) {
         // debug('Erro ao processar mensagem: ', err);
         // Diminui o tempo de visibilidade da mensagem para que ela seja reprocessada
         const changeParams = {
@@ -178,12 +168,11 @@ export class SQS extends Events implements EventsInterface {
             VisibilityTimeout: 0,
         };
 
-        const sqs = this.getInstance();
+        const sqs = await this.getInstance();
         sqs.changeMessageVisibility(changeParams, (error, data) => {
             if (error) {
                 debug('Erro ao alterar visibilidade da mensagem: ', error.message);
-                if (this.options.throwError)
-                    throw error;
+                if (this.options.throwError) throw error;
             }
             // else {
             // debug('Visibilidade da mensagem alterada: ', message.MessageId);
@@ -191,9 +180,9 @@ export class SQS extends Events implements EventsInterface {
         });
     }
 
-    createTopic(name) {
+    async createTopic(name) {
+        const sns = await this.getSNSInstance();
         return new Promise((resolve) => {
-            const sns = this.getSNSInstance();
             this.findTopic(name).then((topicArn) => {
                 if (topicArn) {
                     // debug(`A fila ${name} já existe (${queueUrl})`);
@@ -202,11 +191,9 @@ export class SQS extends Events implements EventsInterface {
                     sns.createTopic({ Name: name }, (error, data) => {
                         if (error) {
                             debug('Erro ao criar tópico: ', error.message);
-                            if (this.options.throwError)
-                                throw error;
+                            if (this.options.throwError) throw error;
                             // reject(error);
-                            this.createTopicOnFail(name)
-                                .then((topicArn) => resolve(topicArn));
+                            this.createTopicOnFail(name).then((topicArn) => resolve(topicArn));
                         } else {
                             // debug(`Tópico criado com sucesso: ${data.TopicArn}`);
                             resolve(data.TopicArn);
@@ -222,14 +209,13 @@ export class SQS extends Events implements EventsInterface {
         return await this.createTopic(name);
     }
 
-    findTopic(name) {
+    async findTopic(name) {
+        const sns = await this.getSNSInstance();
         return new Promise((resolve, reject) => {
-            const sns = this.getSNSInstance();
             sns.listTopics({}, (error, data) => {
                 if (error) {
                     debug('Erro ao listar tópicos: ', error.message);
-                    if (this.options.throwError)
-                        throw error;
+                    if (this.options.throwError) throw error;
                     // reject(error);
                     reject();
                 } else {
@@ -245,10 +231,10 @@ export class SQS extends Events implements EventsInterface {
         });
     }
 
-    createQueue(name) {
+    async createQueue(name) {
+        const sqs = await this.getInstance();
         return new Promise((resolve) => {
             // Verifica se a fila já existe
-            const sqs = this.getInstance();
             this.findQueueUrl(name).then((queueUrl) => {
                 if (queueUrl) {
                     // debug(`A fila ${name} já existe (${queueUrl})`);
@@ -258,11 +244,9 @@ export class SQS extends Events implements EventsInterface {
                     sqs.createQueue({ QueueName: name }, (error, data) => {
                         if (error) {
                             debug('createQueue:', error.message);
-                            if (this.options.throwError)
-                                throw error;
+                            if (this.options.throwError) throw error;
                             // reject(error);
-                            this.createQueueOnFail(name)
-                                .then((queueUrl) => resolve(queueUrl));
+                            this.createQueueOnFail(name).then((queueUrl) => resolve(queueUrl));
                         } else {
                             const queueUrl = data.QueueUrl;
                             // debug(`A fila ${name} foi criada com sucesso (${queueUrl})`);
@@ -280,20 +264,18 @@ export class SQS extends Events implements EventsInterface {
     }
 
     async getQueueUrl(name) {
-        if (!this.queueUrls[name])
-            this.queueUrls[name] = await this.findQueueUrl(name);
+        if (!this.queueUrls[name]) this.queueUrls[name] = await this.findQueueUrl(name);
         return this.queueUrls[name];
     }
 
-    findQueueUrl(name) {
+    async findQueueUrl(name) {
+        const sqs = await this.getInstance();
         return new Promise((resolve, reject) => {
             // Verifica se a fila já existe
-            const sqs = this.getInstance();
             sqs.listQueues({ QueueNamePrefix: name }, (error, data) => {
                 if (error) {
                     debug('findQueueUrl:', error.message);
-                    if (this.options.throwError)
-                        throw error;
+                    if (this.options.throwError) throw error;
                     reject();
                 } else {
                     // Se a fila já existe, utiliza a URL da fila existente
@@ -315,25 +297,27 @@ export class SQS extends Events implements EventsInterface {
         return _queueUrl;
     }
 
-    queueSubscribe(_queueUrl) {
+    async queueSubscribe(_queueUrl) {
+        const sns = await this.getSNSInstance();
         return new Promise((resolve, reject) => {
             const queueUrl = this.queueUrlToARN(_queueUrl);
-            const sns = this.getSNSInstance();
-            sns.subscribe({
-                Protocol: 'sqs',
-                TopicArn: this.options.topicArn,
-                Endpoint: queueUrl
-            }, (error, data) => {
-                if (error) {
-                    debug('queueSubscribe:', error.message);
-                    if (this.options.throwError)
-                        throw error;
-                    reject();
-                } else {
-                    // debug(`Fila inscrita no tópico ${this.options.topicArn}`);
-                    resolve(true);
-                }
-            });
+            sns.subscribe(
+                {
+                    Protocol: 'sqs',
+                    TopicArn: this.options.topicArn,
+                    Endpoint: queueUrl,
+                },
+                (error, data) => {
+                    if (error) {
+                        debug('queueSubscribe:', error.message);
+                        if (this.options.throwError) throw error;
+                        reject();
+                    } else {
+                        // debug(`Fila inscrita no tópico ${this.options.topicArn}`);
+                        resolve(true);
+                    }
+                },
+            );
         });
     }
 }

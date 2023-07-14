@@ -1,17 +1,24 @@
 import _ from 'lodash';
-import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 
 import { Secrets } from '../../common/abstract/secrets';
 import { SecretsInterface } from '../../common/interfaces/secrets.interface';
 import { keyFields, providerConfig } from '../index';
 
+let SecretManagerServiceClient;
 export class SecretManager extends Secrets implements SecretsInterface {
+    protected libraries = {
+        SecretManagerServiceClient: {
+            path: '@google-cloud/secret-manager',
+            key: 'SecretManagerServiceClient',
+        },
+    };
     protected instance;
 
     async initialize(options: any = {}) {
-        super.initialize(options);
+        await super.initialize(options);
+        SecretManagerServiceClient = this.getLibrary('SecretManagerServiceClient');
         this.checkOptions();
-        this.instance = this.createInstance(options);
+        this.instance = await this.createInstance(options);
     }
 
     checkOptions() {
@@ -25,16 +32,16 @@ export class SecretManager extends Secrets implements SecretsInterface {
         return this.providerOptions.project || this.options.project;
     }
 
-    getInstance(options: any = {}) {
+    async getInstance(options: any = {}) {
         if (_.intersection(_.keys(options), _.keys(keyFields)).length > 0) {
-            const instance = this.createInstance(options);
+            const instance = await this.createInstance(options);
             return instance;
         }
         return this.instance;
     }
 
-    createInstance(options: any = {}) {
-        const config = providerConfig(this.mergeProviderOptions(options, keyFields));
+    async createInstance(options: any = {}) {
+        const config = await providerConfig(this.mergeProviderOptions(options, keyFields));
         return new SecretManagerServiceClient({
             ...config,
             projectId: this.getProjectId(),
@@ -54,7 +61,7 @@ export class SecretManager extends Secrets implements SecretsInterface {
 
     async _getSecretValue(path: string) {
         const name = this.buildPath(path);
-        const secrets = this.getInstance();
+        const secrets = await this.getInstance();
 
         const [version] = await secrets.accessSecretVersion({
             name,

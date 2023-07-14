@@ -39,13 +39,9 @@ export abstract class Storage extends Solution {
         return defaultsDeep({}, omit(this.getOptions(), 'params'), omit(options, 'params', ...keys(keyFields)));
     }
 
-    async readDirectory(directoryPath = '', options: any = {}) {
-        return [];
-    }
-
     async getDirectoryContentLength(directoryPath = '', options: any = {}) {
         try {
-            const objects = await this.readDirectory(directoryPath, options);
+            const objects = await this['readDirectory'](directoryPath, options);
             return objects?.length || 0;
         } catch (error) {
             return 0;

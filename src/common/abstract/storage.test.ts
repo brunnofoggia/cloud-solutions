@@ -26,14 +26,14 @@ checkOptions.shouldThrowError = async (StorageClass) => {
 };
 
 const getInstance: any = {};
-getInstance.shouldBeInstanceOf = (storage, reference) => {
-    const instance = storage.getInstance();
+getInstance.shouldBeInstanceOf = async (storage, reference) => {
+    const instance = await storage.getInstance();
     expect(instance).toBeInstanceOf(reference);
 };
 
 const createInstance: any = {};
-createInstance.shouldBeInstanceOf = (storage, reference) => {
-    const instance = storage.createInstance();
+createInstance.shouldBeInstanceOf = async (storage, reference) => {
+    const instance = await storage.createInstance();
     expect(instance).toBeInstanceOf(reference);
 };
 
@@ -57,11 +57,11 @@ readContent.shouldThrowErrorForUnexistentFile = async (storage) => {
 
 const sendStream: any = {};
 sendStream.shouldReturnInstanceOfWriteStream = async (storage, reference) => {
-    const stream = storage.sendStream(mockFileStreamPath);
+    const stream = await storage.sendStream(mockFileStreamPath);
     expect(stream).toBeInstanceOf(reference);
 };
 sendStream.shouldSendContent = async (storage) => {
-    const stream = storage.sendStream(mockFileStreamPath);
+    const stream = await storage.sendStream(mockFileStreamPath);
     await stream.write(mockFileStreamContent);
     await stream.end();
     // gcp takes some seconds to list file after send it from stream
