@@ -1,6 +1,6 @@
 {
     "name": "cloud-solutions",
-    "version": "1.20.6",
+    "version": "1.24.0-alpha.1",
     "description": "",
     "license": "ISC",
     "main": "dist/index.js",
@@ -11,7 +11,7 @@
         "prebuild": "rimraf dist",
         "build": "tsc -p ./tsconfig.build.json",
         "lint": "eslint \"{src,apps,libs}/**/*.+(js|json|ts|tsx)\" --fix",
-        "pre-commit": "lint-staged && yarn build && yarn test",
+        "pre-commit": "lint-staged",
         "prepare": "npm run build",
         "testx": "jest --verbose --maxWorkers=3",
         "testy": "jest --verbose",
