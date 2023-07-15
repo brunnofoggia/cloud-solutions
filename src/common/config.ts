@@ -26,6 +26,7 @@ adapters[SolutionEnum.EVENTS][Aws.SolutionsEnum.EVENTS] = Aws.EventsAdapter;
 adapters[ProviderEnum.AWS][SolutionEnum.EVENTS] = Aws.EventsAdapter;
 
 // GCP
+adapters[ProviderEnum.GCP] = {};
 adapters[SolutionEnum.PROVIDERCONFIG][ProviderEnum.GCP] = Gcp.providerConfig;
 adapters[ProviderEnum.GCP][SolutionEnum.PROVIDERCONFIG] = Gcp.providerConfig;
 adapters[SolutionEnum.SECRETS][ProviderEnum.GCP] = Gcp.SecretsAdapter;
@@ -39,6 +40,7 @@ adapters[ProviderEnum.GCP][SolutionEnum.STORAGE] = Gcp.StorageAdapter;
 // adapters[ProviderEnum.GCP][SolutionEnum.EVENTS] = Gcp.EventsAdapter;
 
 // LOCAL
+adapters[ProviderEnum.LOCAL] = {};
 adapters[SolutionEnum.PROVIDERCONFIG][ProviderEnum.LOCAL] = Local.providerConfig;
 adapters[ProviderEnum.LOCAL][SolutionEnum.PROVIDERCONFIG] = Local.providerConfig;
 adapters[SolutionEnum.SECRETS][ProviderEnum.LOCAL] = Local.SecretsAdapter;
