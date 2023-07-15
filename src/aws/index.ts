@@ -2,7 +2,7 @@ import { ParameterStore } from './secrets/index';
 import { S3 } from './storage/index';
 import { SQS } from './events/index';
 import { SolutionsEnum } from './solutions';
-import { Solution } from '@/common/abstract/solution';
+import { Solution } from '../common/abstract/solution';
 
 export const StorageAdapter = S3;
 export const SecretsAdapter = ParameterStore;
