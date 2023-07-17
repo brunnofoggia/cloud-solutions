@@ -1,15 +1,6 @@
 export default {
+    /* presets: https://kulshekhar.github.io/ts-jest/docs/next/getting-started/presets */
     preset: 'ts-jest/presets/js-with-babel',
-    // preset: 'ts-jest',
-    // preset: 'ts-jest/presets/default-esm',
-    // preset: 'ts-jest/presets/js-with-ts',
-    // preset: 'ts-jest/presets/js-with-ts-esm',
-    // preset: 'ts-jest/presets/js-with-babel-esm',
-    // preset: 'ts-jest/presets/js-with-ts-esm-legacy',
-    // preset: 'ts-jest/presets/js-with-babel-esm-legacy',
-    // preset: 'ts-jest/presets/js-with-babel-legacy',
-    // testEnvironment: 'node',
-    // extensionsToTreatAsEsm: ['.ts'],
     transform: {
         '^.+\\.jsx?$': [
             'babel-jest',
@@ -50,8 +41,6 @@ export default {
             },
         ],
     },
-    // transformIgnorePatterns: ['/node_modules/(.*)'], // ignore list
-    // transformIgnorePatterns: ['/node_modules/(?!package-name)(.*)'], // ignore all but one
     moduleFileExtensions: ['js', 'json', 'ts'],
     rootDir: 'src',
     modulePaths: ['<rootDir>'],
@@ -62,8 +51,14 @@ export default {
         // esm config
         '^(\\.{1,2}/.*)\\.js$': '$1',
     },
+
+    // transformIgnorePatterns: ['/node_modules/(.*)'], // ignore list
+    // transformIgnorePatterns: ['/node_modules/(?!package-name)(.*)'], // ignore all but one
+
     // Automatically clear mock calls and instances between every test
     // clearMocks: true,
+
+    /* coverage */
     // // Indicates whether the coverage information should be collected while executing the test
     // collectCoverage: true,
     // // An array of glob patterns indicating a set of files for which coverage information should be collected
