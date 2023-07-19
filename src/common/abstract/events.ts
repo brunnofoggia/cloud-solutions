@@ -28,7 +28,7 @@ export abstract class Events extends Solution {
     }
 
     getMessageBody(message) {
-        return message.Body || message.content;
+        return message.Body || message.content || '{}';
     }
 
     formatMessageBody(message) {
@@ -37,13 +37,18 @@ export abstract class Events extends Solution {
             if (/^[[{]/.test(body)) return JSON.parse(body);
             return body;
         } catch (error) {
-            debug('formatMessageBody:', error.message);
+            debug('JSON Parse error at formatMessageBody:', error.message);
+            return false;
         }
     }
 
     async receiveMessage(name, handler, message, options) {
-        const body = this.formatMessageBody(message);
         debug(`@${process.pid} Executing Queue ${name}`);
+        const body = this.formatMessageBody(message);
+        if (body === false) {
+            debug(`@${process.pid} Aborting Queue`);
+            return await this.ack(name, message, options);
+        }
 
         try {
             const result = await handler(body, {
