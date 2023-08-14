@@ -1,6 +1,6 @@
 {
     "name": "cloud-solutions",
-    "version": "1.26.1",
+    "version": "1.27.0",
     "description": "",
     "license": "ISC",
     "main": "dist/index.js",
@@ -45,11 +45,8 @@
         "@types/lodash": "^4.14.191",
         "amqplib": "^0.10.3",
         "aws-sdk": "^2.1366.0",
-        "bluebird": "^3.7.2",
         "eslint": "^8.39.0",
-        "js-yaml": "^4.1.0",
-        "lodash": "^4.17.21",
-        "serverless-secret-baker": "^2.1.0"
+        "lodash": "^4.17.21"
     },
     "files": [
         "/dist"

@@ -3,8 +3,12 @@ import { ReadStream } from 'fs';
 export class WriteStream {
     protected firstLine = true;
 
+    isFirstLine() {
+        return this.firstLine;
+    }
+
     async writeLine(content) {
-        const lineBreak = this.firstLine ? '' : '\n';
+        const lineBreak = this.isFirstLine() ? '' : '\n';
         this.firstLine = false;
         return await this['write'](lineBreak + content);
     }
