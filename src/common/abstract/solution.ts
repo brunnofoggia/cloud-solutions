@@ -7,7 +7,7 @@ export class Solution {
     protected options: any = {};
     protected defaultOptions: any = {};
 
-    constructor(providerOptions) {
+    constructor(providerOptions: any = {}) {
         this.providerOptions = providerOptions;
     }
 
