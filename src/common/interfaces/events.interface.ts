@@ -3,9 +3,10 @@ export interface EventsInterface {
     _sendToQueue(name, data);
     sendToQueue(name, data, retry?);
     loadQueue(name, handler);
+    isConnected();
 }
 
 export interface HandlerOptionsInterface {
-    events?: EventsInterface,
+    events?: EventsInterface;
     queueName?: string;
 }
