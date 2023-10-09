@@ -5,6 +5,7 @@ import { sleep } from '../utils/index';
 import { Solution } from './solution';
 
 export abstract class Events extends Solution {
+    protected _isConnected = false;
     public defaultOptions: any = {
         retryInterval: 5000,
         maxNumberOfMessages: 1,
@@ -71,6 +72,10 @@ export abstract class Events extends Solution {
 
     formatQueueName(_name) {
         return _name.replace(/\//g, '-');
+    }
+
+    isConnected() {
+        return this._isConnected;
     }
 
     abstract ack(name, message, options): any;

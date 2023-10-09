@@ -12,7 +12,6 @@ export class RabbitMQ extends Events implements EventsInterface {
     };
     private connection = null;
     private channel = null;
-    private _reconnecting = false;
 
     async initialize(options: any = {}) {
         await super.initialize(options);
@@ -22,7 +21,7 @@ export class RabbitMQ extends Events implements EventsInterface {
         await this.connect();
         await this.createChannel();
         this.options.loadQueues && (await this.options.loadQueues(this));
-        this._reconnecting = false;
+        this._isConnected = true;
     }
 
     private async connect() {
@@ -94,9 +93,9 @@ export class RabbitMQ extends Events implements EventsInterface {
     }
 
     async reconnect() {
-        if (this._reconnecting) return;
+        if (!this._isConnected) return;
 
-        this._reconnecting = true;
+        this._isConnected = false;
         await this.initialize(this.options);
     }
 
