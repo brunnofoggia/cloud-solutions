@@ -42,13 +42,18 @@ export class Fs extends Storage implements StorageInterface {
     async readStream(filePath, options: any = {}) {
         this.isInitialized();
         const _path = path.join(options.basePath || this.options.basePath, filePath);
-        const data = createReadStream(_path);
-        const rl = createInterface({
-            input: data,
-            crlfDelay: Infinity,
-        });
-
-        return rl;
+        try {
+            if (existsSync(_path)) {
+                const data = await createReadStream(_path);
+                const rl = await createInterface({
+                    input: data,
+                    crlfDelay: Infinity,
+                });
+                return rl;
+            } else debug('file not found', _path);
+        } catch (err) {
+            debug('fail on creating read stream', err);
+        }
     }
 
     createDirIfNotExists(_path) {
