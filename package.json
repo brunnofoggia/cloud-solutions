@@ -1,6 +1,6 @@
 {
     "name": "cloud-solutions",
-    "version": "1.30.4",
+    "version": "1.30.5",
     "description": "",
     "license": "ISC",
     "author": "Bruno Foggia",
@@ -47,6 +47,7 @@
         "typescript": "^4.9.5"
     },
     "dependencies": {
+        "debug": "^4.3.4",
         "lodash": "^4.17.21"
     },
     "files": [
