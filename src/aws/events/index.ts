@@ -31,7 +31,7 @@ export class SQS extends Events implements EventsInterface {
         this.instance = await this.createInstance(options);
         this.snsInstance = await this.createSNSInstance(options);
 
-        this.options.topicArn = await this.createTopic(this.options.topicName);
+        this.options.topicArn = await this.createSNSTopic(this.options.topicName);
         this.options.loadQueues && (await this.options.loadQueues(this));
         // this._reconnecting = false;
     }
@@ -180,7 +180,7 @@ export class SQS extends Events implements EventsInterface {
         });
     }
 
-    async createTopic(name) {
+    async createSNSTopic(name) {
         const sns = await this.getSNSInstance();
         return new Promise((resolve) => {
             this.findTopic(name).then((topicArn) => {
@@ -206,7 +206,7 @@ export class SQS extends Events implements EventsInterface {
 
     async createTopicOnFail(name) {
         await sleep(this.options.retryInterval);
-        return await this.createTopic(name);
+        return await this.createSNSTopic(name);
     }
 
     async findTopic(name) {
