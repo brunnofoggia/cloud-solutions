@@ -8,10 +8,13 @@ import { Events } from '../../common/abstract/events';
 import { keyFields, libraries, providerConfig } from '../index';
 
 let AWS;
+
 export class SQS extends Events implements EventsInterface {
     protected libraries = libraries;
     public defaultOptions: any = {
         ...Events.prototype.defaultOptions,
+        processMessagesAtOnce: 0,
+        processingMessages: 0,
         listenInterval: 1000,
         params: {
             AttributeNames: ['All'],
@@ -22,6 +25,7 @@ export class SQS extends Events implements EventsInterface {
     protected queueUrls: any = {};
     protected instance;
     protected snsInstance;
+    protected listeners = [];
 
     async initialize(options: any = {}) {
         await super.initialize(options);
@@ -31,8 +35,11 @@ export class SQS extends Events implements EventsInterface {
         this.instance = await this.createInstance(options);
         this.snsInstance = await this.createSNSInstance(options);
 
-        this.options.topicArn = await this.createSNSTopic(this.options.topicName);
-        this.options.loadQueues && (await this.options.loadQueues(this));
+        this.options.topicName && (this.options.topicArn = await this.createSNSTopic(this.options.topicName));
+        if (this.options.loadQueues) {
+            await this.options.loadQueues(this);
+            this.listenAll();
+        }
         // this._reconnecting = false;
     }
 
@@ -85,7 +92,7 @@ export class SQS extends Events implements EventsInterface {
             debug('loadQueue:queueUrl', this.queueUrls[name]);
 
             await this.queueSubscribe(this.queueUrls[name]);
-            this.listener(name, _handler);
+            this.listeners.push([name, _handler]);
         }
     }
 
@@ -95,32 +102,59 @@ export class SQS extends Events implements EventsInterface {
             QueueUrl: this.queueUrls[_name],
         };
 
-        if (this.options.maxNumberOfMessages) params.MaxNumberOfMessages = +this.options.maxNumberOfMessages;
+        const max = +this.options.maxNumberOfMessages;
+        const current = this.options.processingMessages;
+        const available = max - current;
+        if (this.options.maxNumberOfMessages) params.MaxNumberOfMessages = available;
 
         return params;
     }
 
-    async listener(_name, _handler) {
-        const sqs = await this.getInstance();
+    lengthAvailable() {
+        const max = +this.options.maxNumberOfMessages;
+        const current = this.options.processingMessages;
+        const available = max - current;
+        return available;
+    }
 
-        const params = this.buildListenerParams(_name);
+    async listenAll() {
+        for (const [name, handler] of this.listeners) {
+            if (this.lengthAvailable() <= 0) break;
 
-        sqs.receiveMessage(params, (error, data) => {
-            if (error) {
-                debug('loadQueue:receiveMessage', error.message);
-                if (this.options.throwError) throw error;
-            } else {
-                if (data?.Messages?.length)
-                    for (const index in data.Messages) this.receiveMessage(_name, _handler, data.Messages[index], { events: this });
+            try {
+                await this.listen(name, handler);
+            } catch (err) {
+                debug('err found listening to:', name, 'error:', err);
             }
+        }
+
+        return setTimeout(() => this.listenAll(), this.options.listenInterval);
+    }
+
+    async listen(_name, _handler) {
+        const sqs = await this.getInstance();
+        return new Promise<void>((resolve, reject) => {
+            const params = this.buildListenerParams(_name);
+
+            sqs.receiveMessage(params, (error, data) => {
+                if (error) {
+                    debug('loadQueue:receiveMessage', error.message);
+                    if (this.options.throwError) return reject(error);
+                } else {
+                    if (data?.Messages?.length) {
+                        this.options.processingMessages += data?.Messages?.length || 0;
+                        if (this.options.processMessagesAtOnce) this.receiveMessage(_name, _handler, data.Messages, { events: this });
+                        else for (const index in data.Messages) this.receiveMessage(_name, _handler, data.Messages[index], { events: this });
+                    }
+                }
+                return resolve();
+            });
         });
-        await sleep(this.options.listenInterval);
-        this.listener(_name, _handler);
     }
 
     _sendToQueue(_name, data) {
         const name = this.formatQueueName(_name);
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this.getQueueUrl(name).then(async (queueUrl) => {
                 const params = {
                     MessageBody: typeof data === 'object' ? JSON.stringify(data) : data + '',
@@ -142,13 +176,24 @@ export class SQS extends Events implements EventsInterface {
     }
 
     async ack(name, message, options) {
-        // Deleta a mensagem da fila
+        const messages = !this.options.processMessagesAtOnce ? [message] : message;
+        this.options.processingMessages -= message.length;
+        await this.deleteMessages(name, messages);
+    }
+
+    async deleteMessages(name, messages) {
+        for (const message of messages) {
+            await this.deleteMessage(name, message);
+        }
+    }
+
+    async deleteMessage(name, message) {
+        const sqs = await this.getInstance();
+
         const deleteParams = {
             QueueUrl: this.queueUrls[name],
             ReceiptHandle: message.ReceiptHandle,
         };
-
-        const sqs = await this.getInstance();
         sqs.deleteMessage(deleteParams, (error, data) => {
             if (error) {
                 debug('ack:', error.message);
@@ -160,15 +205,25 @@ export class SQS extends Events implements EventsInterface {
     }
 
     async nack(name, message, options) {
-        // debug('Erro ao processar mensagem: ', err);
+        const messages = !this.options.processMessagesAtOnce ? [message] : message;
+        this.options.processingMessages -= message.length;
+        await this.changeMessagesVisibility(name, messages);
+    }
+
+    async changeMessagesVisibility(name, messages) {
+        for (const message of messages) {
+            await this.changeMessageVisibility(name, message);
+        }
+    }
+
+    async changeMessageVisibility(name, message) {
+        const sqs = await this.getInstance();
         // Diminui o tempo de visibilidade da mensagem para que ela seja reprocessada
         const changeParams = {
             QueueUrl: this.queueUrls[name],
             ReceiptHandle: message.ReceiptHandle,
             VisibilityTimeout: 0,
         };
-
-        const sqs = await this.getInstance();
         sqs.changeMessageVisibility(changeParams, (error, data) => {
             if (error) {
                 debug('Erro ao alterar visibilidade da mensagem: ', error.message);
