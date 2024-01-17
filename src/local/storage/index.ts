@@ -4,7 +4,7 @@ const debug = _debug('solutions:storage:fs');
 import path from 'path';
 import { createInterface } from 'readline';
 import fs from 'fs/promises';
-import { createReadStream, existsSync, lstatSync, mkdirSync } from 'fs';
+import { createReadStream, existsSync, lstatSync, mkdirSync, createWriteStream } from 'fs';
 import { each, map } from 'lodash';
 
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
@@ -139,10 +139,13 @@ export class Fs extends Storage implements StorageInterface {
         }
     }
 
-    sendStream(filePath, params: any = {}) {
+    sendStream(filePath, options: any = {}) {
         this.isInitialized();
         this.createDirIfNotExists(filePath);
-        const upload = async (content) => await this._sendContent(filePath, content, params);
+
+        const _path = path.join(options.basePath || this.options.basePath, filePath);
+        // const upload = async (content) => await this._sendContent(filePath, content, params);
+        const upload = createWriteStream(_path);
 
         return new WriteStream(upload);
     }

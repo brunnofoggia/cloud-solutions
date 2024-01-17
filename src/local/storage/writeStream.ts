@@ -5,16 +5,17 @@ export class WriteStream extends _WriteStream implements WriteStreamInterface {
     protected upload: any;
     protected content = '';
 
-    constructor(upload) {
+    constructor(protected _stream: any, options: any = {}) {
         super();
-        this.upload = upload;
     }
 
     async write(content) {
-        this.content += content;
+        // this.content += content;
+        await this._stream.write(content);
     }
 
     async end() {
-        return await this.upload(this.content);
+        // return await this.upload(this.content);
+        return await this._stream.end();
     }
 }

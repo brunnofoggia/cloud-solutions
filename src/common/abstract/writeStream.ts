@@ -3,6 +3,14 @@ import { ReadStream } from 'fs';
 export class WriteStream {
     protected firstLine = true;
 
+    getRawStream() {
+        return this['_stream'];
+    }
+
+    on(event: string, callback: any) {
+        return this['_stream']?.on(event, callback);
+    }
+
     isFirstLine() {
         return this.firstLine;
     }

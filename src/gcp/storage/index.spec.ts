@@ -90,7 +90,7 @@ describe('Gcp Storage', () => {
         });
 
         it('should send content', async () => {
-            await sendStream.shouldSendContent(storage);
+            await sendStream.shouldSendContentGcp(storage);
         });
     });
 

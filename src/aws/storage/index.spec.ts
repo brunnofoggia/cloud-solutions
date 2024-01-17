@@ -21,6 +21,7 @@ import {
     sendStream,
     toBeDefined,
 } from '@/common/abstract/storage.test';
+import { sleep } from '@/common/utils';
 
 describe('Aws Storage', () => {
     let storage: S3;

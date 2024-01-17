@@ -70,14 +70,31 @@ sendStream.shouldReturnInstanceOfWriteStream = async (storage, reference) => {
     const stream = await storage.sendStream(mockFileStreamPath);
     expect(stream).toBeInstanceOf(reference);
 };
+
 sendStream.shouldSendContent = async (storage) => {
     expect.assertions(1);
     const stream = await storage.sendStream(mockFileStreamPath);
     await stream.write(mockFileStreamContent);
+
+    stream.on('finish', () => {
+        expect(true).toEqual(true);
+    });
     await stream.end();
-    // gcp takes some seconds to list file after send it from stream
-    await sleep(3000);
-    expect(true).toEqual(true);
+};
+
+sendStream.shouldSendContentGcp = async (storage) => {
+    expect.assertions(1);
+    const stream = await storage.sendStream(mockFileStreamPath);
+    await stream.write(mockFileStreamContent);
+
+    return new Promise((resolve, reject) => {
+        stream.on('finish', () => {
+            expect(true).toEqual(true);
+            resolve(true);
+        });
+        // gcp doesnt trigger finish if "await stream.end()" is used
+        stream.end();
+    });
 };
 
 const readStream: any = {};
@@ -88,6 +105,8 @@ readStream.shouldReturnInstanceOfInterface = async (storage, reference) => {
 };
 readStream.shouldMatchContent = async (storage) => {
     expect.assertions(1);
+    // wait until file is ready for read
+    await sleep(3000);
     const stream = await storage.readStream(mockFileStreamPath);
     let content = '';
     let firstLine = true;
