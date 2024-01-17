@@ -2,10 +2,10 @@ import _debug from 'debug';
 const debug = _debug('solutions:storage:gcp');
 
 import { defaultsDeep, intersection, keys } from 'lodash';
-import { createInterface } from 'readline';
+import { Interface as ReadLineInterface, createInterface } from 'readline';
 
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
-import { StorageInterface } from '../../common/interfaces/storage.interface';
+import { ReadStreamOptions, StorageInterface } from '../../common/interfaces/storage.interface';
 import { Storage as AStorage } from '../../common/abstract/storage';
 import { providerConfig, keyFields } from '../index';
 import { WriteStream } from './writeStream';
@@ -53,12 +53,14 @@ export class Storage extends AStorage implements StorageInterface {
         return fileContent?.toString(options.charset || 'utf-8');
     }
 
-    async readStream(path, options: any = {}) {
+    async readStream(path, options: Partial<ReadStreamOptions> = {}): Promise<ReadLineInterface | NodeJS.ReadableStream> {
         this.isInitialized();
         const storage = await this.getInstance(options);
         const Bucket = options.Bucket || this.getOptions().Bucket;
 
         const data = storage.bucket(Bucket).file(path).createReadStream();
+        if (options.getRawStream) return data;
+
         const rl = createInterface({
             input: data,
             crlfDelay: Infinity,

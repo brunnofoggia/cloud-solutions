@@ -2,11 +2,11 @@ import _debug from 'debug';
 const debug = _debug('solutions:storage:aws');
 
 import { omit, intersection, keys, map } from 'lodash';
-import { createInterface } from 'readline';
+import { Interface as ReadLineInterface, createInterface } from 'readline';
 import stream from 'stream';
 
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
-import { StorageInterface } from '../../common/interfaces/storage.interface';
+import { ReadStreamOptions, StorageInterface } from '../../common/interfaces/storage.interface';
 import { Storage as AStorage } from '../../common/abstract/storage';
 import { providerConfig, keyFields, libraries } from '../index';
 import { WriteStream } from './writeStream';
@@ -49,7 +49,7 @@ export class S3 extends AStorage implements StorageInterface {
         return data?.Body.toString(options.charset || 'utf-8');
     }
 
-    async readStream(path, options: any = {}) {
+    async readStream(path, options: Partial<ReadStreamOptions> = {}): Promise<ReadLineInterface | NodeJS.ReadableStream> {
         this.isInitialized();
         const storage = await this.getInstance(options);
 
@@ -59,6 +59,8 @@ export class S3 extends AStorage implements StorageInterface {
         };
 
         const data = storage.getObject(storageParams).createReadStream();
+        if (options.getRawStream) return data;
+
         const rl = createInterface({
             input: data,
             crlfDelay: Infinity,

@@ -2,13 +2,13 @@ import _debug from 'debug';
 const debug = _debug('solutions:storage:fs');
 
 import path from 'path';
-import { createInterface } from 'readline';
+import { Interface as ReadLineInterface, createInterface } from 'readline';
 import fs from 'fs/promises';
 import { createReadStream, existsSync, lstatSync, mkdirSync, createWriteStream } from 'fs';
 import { each, map } from 'lodash';
 
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
-import { StorageInterface } from '../../common/interfaces/storage.interface';
+import { ReadStreamOptions, StorageInterface } from '../../common/interfaces/storage.interface';
 import { Storage } from '../../common/abstract/storage';
 import { WriteStream } from './writeStream';
 
@@ -39,12 +39,14 @@ export class Fs extends Storage implements StorageInterface {
         return await fs.readFile(_path, 'utf8');
     }
 
-    async readStream(filePath, options: any = {}) {
+    async readStream(filePath, options: Partial<ReadStreamOptions> = {}): Promise<ReadLineInterface | NodeJS.ReadableStream> {
         this.isInitialized();
         const _path = path.join(options.basePath || this.options.basePath, filePath);
         try {
             if (existsSync(_path)) {
                 const data = await createReadStream(_path);
+                if (options.getRawStream) return data;
+
                 const rl = await createInterface({
                     input: data,
                     crlfDelay: Infinity,
