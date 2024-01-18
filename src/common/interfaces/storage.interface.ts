@@ -9,7 +9,7 @@ export interface ReadStreamOptions {
 export interface StorageInterface {
     initialize(options?: any);
     readContent(path, options?);
-    readStream(path, options: Partial<ReadStreamOptions>): Promise<ReadLineInterface | NodeJS.ReadableStream>;
+    readStream(path, options?: Partial<ReadStreamOptions>): Promise<ReadLineInterface | NodeJS.ReadableStream>;
     sendStream(path, options?);
     _sendContent(path, content, options?);
     sendContent(path, content, options?, retry?);
