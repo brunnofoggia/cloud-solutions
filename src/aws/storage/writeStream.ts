@@ -1,5 +1,6 @@
 import _debug from 'debug';
-const debug = _debug('solutions:storage:aws:WriteStream');
+// const log = _debug('solutions:storage:aws:WriteStream');
+const debug = _debug('debug:solutions:storage:aws:WriteStream');
 
 import { Transform } from 'stream';
 

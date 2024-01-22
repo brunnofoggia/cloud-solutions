@@ -67,8 +67,12 @@ describe('Local Storage', () => {
             await sendStream.shouldReturnInstanceOfWriteStream(storage, WriteStream);
         });
 
-        it('should send content', async () => {
-            await sendStream.shouldSendContent(storage);
+        it('should send short content', async () => {
+            await sendStream.shouldSendShortContent(storage);
+        });
+
+        it('should send long content', async () => {
+            await sendStream.shouldSendLongContent(storage);
         });
     });
 
