@@ -71,25 +71,32 @@ sendStream.shouldReturnInstanceOfWriteStream = async (storage, reference) => {
     expect(stream).toBeInstanceOf(reference);
 };
 
-sendStream.shouldSendContent = async (storage) => {
-    expect.assertions(1);
-    const stream = await storage.sendStream(mockFileStreamPath);
-    await stream.write(mockFileStreamContent);
+// old method
+// sendStream.shouldSendContent = async (storage) => {
+//     expect.assertions(1);
+//     const writeStream = await storage.sendStream(mockFileStreamPath);
+//     await writeStream.write(mockFileStreamContent);
 
-    stream.on('finish', () => {
-        expect(true).toEqual(true);
-    });
-    await stream.end();
-};
+//     writeStream.on('close', async () => {
+//         const value = await storage.readContent(mockFileStreamPath);
+//         expect(value).toEqual(mockFileStreamContent);
+//     });
+//     await writeStream.end();
+// };
 
-sendStream.shouldSendContentGcp = async (storage) => {
+sendStream.shouldSendContent = async (storage, wait = 0) => {
     expect.assertions(1);
     const stream = await storage.sendStream(mockFileStreamPath);
     await stream.write(mockFileStreamContent);
 
     return new Promise((resolve, reject) => {
-        stream.on('finish', () => {
-            expect(true).toEqual(true);
+        stream.on('close', async () => {
+            // time for file to be ready on cloud
+            // detected on aws
+            wait && (await sleep(wait));
+
+            const value = await storage.readContent(mockFileStreamPath);
+            expect(value).toEqual(mockFileStreamContent);
             resolve(true);
         });
         // gcp doesnt trigger finish if "await stream.end()" is used

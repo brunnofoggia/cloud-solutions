@@ -90,7 +90,7 @@ describe('Aws Storage', () => {
         });
 
         it('should send content', async () => {
-            await sendStream.shouldSendContent(storage);
+            await sendStream.shouldSendContent(storage, 500);
         });
     });
 

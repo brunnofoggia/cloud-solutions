@@ -141,14 +141,14 @@ export class Fs extends Storage implements StorageInterface {
         }
     }
 
-    sendStream(filePath, options: any = {}) {
+    async sendStream(filePath, options: any = {}) {
         this.isInitialized();
         this.createDirIfNotExists(filePath);
 
         const _path = path.join(options.basePath || this.options.basePath, filePath);
         // const upload = async (content) => await this._sendContent(filePath, content, params);
-        const upload = createWriteStream(_path);
+        const stream = await createWriteStream(_path);
 
-        return new WriteStream(upload);
+        return new WriteStream(stream);
     }
 }
