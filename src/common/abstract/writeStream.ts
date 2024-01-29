@@ -1,6 +1,6 @@
 import { ReadStream } from 'fs';
 
-export class WriteStream {
+export abstract class WriteStream {
     protected firstLine = true;
 
     getRawStream() {
@@ -27,4 +27,6 @@ export class WriteStream {
         }
         terminate && (await this['end']());
     }
+
+    abstract end();
 }
