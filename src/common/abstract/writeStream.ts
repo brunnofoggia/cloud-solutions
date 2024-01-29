@@ -1,7 +1,7 @@
 import { ReadStream } from 'fs';
 
 export abstract class WriteStream {
-    protected firstLine = true;
+    protected lineIndex = 0;
 
     getRawStream() {
         return this['_stream'];
@@ -12,13 +12,22 @@ export abstract class WriteStream {
     }
 
     isFirstLine() {
-        return this.firstLine;
+        return !this.lineIndex;
+    }
+
+    getLineIndex() {
+        return this.lineIndex;
+    }
+
+    getLineNumber() {
+        return this.getLineIndex() + 1;
     }
 
     async writeLine(content) {
         const lineBreak = this.isFirstLine() ? '' : '\n';
-        this.firstLine = false;
-        return await this['write'](lineBreak + content);
+        this.lineIndex++;
+
+        return await this.write(lineBreak + content);
     }
 
     async writeReadStream(readStream: ReadStream, terminate = false) {
@@ -29,4 +38,5 @@ export abstract class WriteStream {
     }
 
     abstract end();
+    abstract write(content);
 }
