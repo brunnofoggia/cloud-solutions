@@ -1,5 +1,7 @@
-import _, { defaultsDeep, keys, omit } from 'lodash';
+import { defaultsDeep, keys, omit } from 'lodash';
 import { Solution } from './solution';
+
+export const storageInternalOptions = ['getRawStream'];
 
 export abstract class Storage extends Solution {
     protected defaultOptions: any = {
@@ -36,7 +38,8 @@ export abstract class Storage extends Solution {
     }
 
     mergeStorageOptions(options = {}, keyFields) {
-        return defaultsDeep({}, omit(this.getOptions(), 'params'), omit(options, 'params', ...keys(keyFields)));
+        const omitFields = [...storageInternalOptions, ...keys(keyFields)];
+        return defaultsDeep({}, omit(this.getOptions(), 'params'), omit(options, 'params', ...omitFields));
     }
 
     async getDirectoryContentLength(directoryPath = '', options: any = {}) {

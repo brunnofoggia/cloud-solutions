@@ -91,8 +91,7 @@ export class S3 extends AStorage implements StorageInterface {
         const _stream = new stream.PassThrough();
         // Configura as opções do upload
         const uploadParams = {
-            ...omit(this.getOptions(), 'params'),
-            ...omit(options, 'params', ...keys(keyFields)),
+            ...this.mergeStorageOptions(options, keyFields),
             Key: filePath,
             Body: _stream,
         };
@@ -114,7 +113,7 @@ export class S3 extends AStorage implements StorageInterface {
         const storage = await this.getInstance(options);
         await storage
             .deleteObject({
-                ...omit(this.getOptions(), 'params'),
+                ...this.mergeStorageOptions(options, keyFields),
                 Key: filePath,
             })
             .promise();
@@ -130,9 +129,8 @@ export class S3 extends AStorage implements StorageInterface {
         try {
             const objects = await storage
                 .listObjectsV2({
-                    ...omit(this.getOptions(), 'params'),
                     Prefix: directoryPath,
-                    ...options,
+                    ...this.mergeStorageOptions(options, keyFields),
                 })
                 .promise();
 
