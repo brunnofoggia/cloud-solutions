@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import _, { defaults, intersection, keys, pick } from 'lodash';
 import _debug from 'debug';
 const debug = _debug('solutions:events');
 
@@ -37,16 +37,16 @@ export class SQS extends Events implements EventsInterface {
     }
 
     async getInstance(options: any = {}) {
-        if (_.intersection(_.keys(options), _.keys(keyFields)).length > 0) {
+        if (intersection(keys(options), keys(keyFields)).length > 0) {
             const instance = await this.createInstance(options);
-            await providerConfig(_.pick(this.providerOptions, ..._.keys(keyFields)));
+            await providerConfig(pick(this.providerOptions, ...keys(keyFields)));
             return instance;
         }
         return this.instance;
     }
 
     async createInstance(options: any = {}) {
-        await providerConfig(_.defaults(_.pick(options, ..._.keys(keyFields)), _.pick(this.providerOptions, ..._.keys(keyFields))));
+        await providerConfig(defaults(pick(options, ...keys(keyFields)), pick(this.providerOptions, ...keys(keyFields))));
 
         const instance = new AWS.SQS({});
 
@@ -54,16 +54,16 @@ export class SQS extends Events implements EventsInterface {
     }
 
     async getSNSInstance(options: any = {}) {
-        if (_.intersection(_.keys(options), _.keys(keyFields)).length > 0) {
+        if (intersection(keys(options), keys(keyFields)).length > 0) {
             const instance = await this.createSNSInstance(options);
-            await providerConfig(_.pick(this.providerOptions, ..._.keys(keyFields)));
+            await providerConfig(pick(this.providerOptions, ...keys(keyFields)));
             return instance;
         }
         return this.snsInstance;
     }
 
     async createSNSInstance(options: any = {}) {
-        await providerConfig(_.defaults(_.pick(options, ..._.keys(keyFields)), _.pick(this.providerOptions, ..._.keys(keyFields))));
+        await providerConfig(defaults(pick(options, ...keys(keyFields)), pick(this.providerOptions, ...keys(keyFields))));
 
         const instance = new AWS.SNS({});
 
