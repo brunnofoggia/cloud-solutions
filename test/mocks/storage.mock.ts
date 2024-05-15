@@ -6,7 +6,7 @@ export const storageMock = function (cloudName) {
     const mockFileStreamPath = [mockDir, `stream-${timestamp}.txt`].join('/');
     const mockFileStreamShortPath = [mockDir, `stream-short-${timestamp}.txt`].join('/');
     const mockFileStreamLongPath = [mockDir, `stream-long-${timestamp}.txt`].join('/');
-    const mockFileContent = `${cloudName} test content`;
+    const mockFileContent = `${cloudName} test content\nline 1\nline 2`;
     const mockFileStreamContent = `${cloudName} stream line 1
 stream line 2`;
     const mockSubdir = 'subdir';

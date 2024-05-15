@@ -51,6 +51,7 @@ export class Solution {
 
     /* libraries */
     async loadLibraries() {
+        if (this.options.initialized) return;
         this.libraryImport = await Solution.loadLibraries(this.libraries);
     }
 
@@ -66,7 +67,15 @@ export class Solution {
     }
 
     static async loadLibrary(config) {
-        return (await import(config.path))[config.key || 'default'];
+        try {
+            return (await import(config.path))[config.key || 'default'];
+        } catch (error) {
+            if (error.message.startsWith(`Cannot find module '${config.path}'`)) {
+                const version = config.version ? `@${config.version}` : '';
+                error.message = `Install '${config.path}${version}' on your project`;
+            }
+            throw error;
+        }
     }
 
     static prepareLibrariesConfig(_libraries) {

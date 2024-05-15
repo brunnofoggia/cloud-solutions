@@ -11,6 +11,10 @@ const detectCloudName = function (storage) {
             return 'gcp';
         case 'Fs':
             return 'local';
+        case 'Sftp':
+            return 'sftp';
+        default:
+            return 'other';
     }
 };
 export const getVariables = function (storage) {
@@ -40,16 +44,24 @@ checkOptions.shouldThrowError = async (StorageClass) => {
 
 const getInstance: any = {};
 getInstance.shouldBeInstanceOf = async (storage, reference) => {
-    expect.assertions(1);
+    expect.assertions(2);
     const instance = await storage.getInstance();
+    expect(instance).not.toBeUndefined();
     expect(instance).toBeInstanceOf(reference);
+    return instance;
 };
 
 const createInstance: any = {};
-createInstance.shouldBeInstanceOf = async (storage, reference) => {
-    expect.assertions(1);
-    const instance = await storage.createInstance();
+createInstance.shouldBeInstanceOf = async (storage, reference, options: any = {}) => {
+    expect.assertions(2);
+    const instance = await storage.createInstance(options);
+    expect(instance).not.toBeUndefined();
     expect(instance).toBeInstanceOf(reference);
+    return instance;
+};
+createInstance.shouldFail = async (storage, reference, options: any = {}) => {
+    expect.assertions(1);
+    await expect(storage.createInstance(options)).rejects.toThrow();
 };
 
 const sendContent: any = {};
@@ -80,12 +92,15 @@ readContent.shouldThrowErrorForUnexistentFile = async (storage) => {
 const sendStream: any = {};
 sendStream.shouldReturnInstanceOfWriteStream = async (storage, reference) => {
     expect.assertions(1);
-    const { mockFileStreamPath } = getVariables(storage);
+    const { mockFileStreamPath, mockFileStreamContent } = getVariables(storage);
     const stream = await storage.sendStream(mockFileStreamPath);
+    await stream.writeLine(mockFileStreamContent);
+    await stream.end();
+
     expect(stream).toBeInstanceOf(reference);
 };
 
-sendStream.shouldSendShortContent = async (storage) => {
+sendStream.shouldSendShortContent = async (storage, sleep_ = 0) => {
     expect.assertions(1);
     const { mockFileStreamShortPath, mockFileStreamContent } = getVariables(storage);
     const stream = await storage.sendStream(mockFileStreamShortPath);
@@ -93,10 +108,11 @@ sendStream.shouldSendShortContent = async (storage) => {
     await stream.writeLine(mockFileStreamContent);
     await stream.end();
 
+    if (sleep_) await sleep(sleep_);
     await sendStream.checkFinalContent(storage, mockFileStreamShortPath, mockFileStreamContent);
 };
 
-sendStream.shouldSendLongContent = async (storage) => {
+sendStream.shouldSendLongContent = async (storage, sleep_ = 0) => {
     expect.assertions(1);
     const { mockFileStreamLongPath, mockContentLongList } = getVariables(storage);
     const stream = await storage.sendStream(mockFileStreamLongPath);
@@ -107,6 +123,7 @@ sendStream.shouldSendLongContent = async (storage) => {
     await stream.end();
     const finalContent = mockContentLongList.join('\n');
 
+    if (sleep_) await sleep(sleep_);
     await sendStream.checkFinalContent(storage, mockFileStreamLongPath, finalContent);
 };
 
