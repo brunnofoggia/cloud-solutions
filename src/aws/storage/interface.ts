@@ -1,7 +1,8 @@
 import { StorageInterface } from '../../common/interfaces/storage.interface';
 
 export interface CopyFileOptionsInterface {
-    toStorage?: StorageInterface;
+    storageFrom?: StorageInterface;
+    storageTo?: StorageInterface;
     checkSize?: boolean;
     move?: boolean;
     clear?: boolean;

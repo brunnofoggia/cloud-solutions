@@ -206,15 +206,18 @@ export class S3 extends AStorage implements StorageInterface {
 
     async copyFile(pathFrom, pathTo, options: Partial<CopyFileOptionsInterface> = {}): Promise<void> {
         this.isInitialized();
-        const _options = defaultsDeep({}, options, copyFileOptionsDefault);
+        const _options: Partial<CopyFileOptionsInterface> = defaultsDeep({}, options, copyFileOptionsDefault);
         const s3 = await this.getInstance(_options);
-        const destination = _options.toStorage || this;
-        if (!(destination instanceof S3)) {
-            throw new Error('The destination storage must be the same as source storage');
-        }
 
-        const sourceBucket = this.getOptions().Bucket;
-        const destinationBucket = destination.getOptions().Bucket;
+        const sourceStorage = (_options.storageFrom || this) as S3;
+        const destinationStorage = (_options.storageTo || this) as S3;
+
+        const sourceBucket = sourceStorage.getOptions().Bucket;
+        const destinationBucket = destinationStorage.getOptions().Bucket;
+
+        if (!(destinationStorage instanceof S3) || !(sourceStorage instanceof S3)) {
+            throw new Error('Both storages must be the instance of S3');
+        }
 
         const copyParams = {
             Bucket: destinationBucket,
@@ -222,15 +225,15 @@ export class S3 extends AStorage implements StorageInterface {
             Key: pathTo,
         };
 
-        if (options.clear) await this.deleteFile(pathTo);
+        if (options.clear) await destinationStorage.deleteFile(pathTo);
         await s3.copyObject(copyParams).promise();
         debug(`File copied from "${sourceBucket}/${pathFrom}" to "${destinationBucket}/${pathTo}"`);
 
         if (_options.checkSize) {
-            const isEqualSize = await this.compareSize(pathFrom, pathTo, { storageB: _options.toStorage });
+            const isEqualSize = await destinationStorage.compareSize(pathFrom, pathTo, { storageB: _options.storageTo });
             if (!isEqualSize) throw new Error(`The file "${pathFrom}" was not copied correctly to "${pathTo}"`);
         }
 
-        if (_options.move) await this.deleteFile(pathFrom);
+        if (_options.move) await sourceStorage.deleteFile(pathFrom);
     }
 }
