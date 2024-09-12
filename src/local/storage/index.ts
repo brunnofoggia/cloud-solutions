@@ -7,7 +7,7 @@ import fsp from 'fs/promises';
 import { createReadStream, existsSync, lstatSync, mkdirSync, createWriteStream } from 'fs';
 
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
-import { ReadStreamOptions, StorageInterface } from '../../common/interfaces/storage.interface';
+import { FileInfoInterface, ReadStreamOptions, StorageInterface } from '../../common/interfaces/storage.interface';
 import { Storage } from '../../common/abstract/storage';
 import { WriteStream } from './writeStream';
 
@@ -168,13 +168,13 @@ export class Fs extends Storage implements StorageInterface {
         return new WriteStream(stream, { filePath: _path });
     }
 
-    async getFileInfo(path_, options: any = {}) {
+    async getFileInfo(path_, options: any = {}): Promise<FileInfoInterface> {
         this.isInitialized();
         const fullpath = this.buildPath(path_, options);
         const data = await fsp.stat(fullpath);
 
         return {
-            contentLength: data.size,
+            contentLength: data.size as number,
             etag: data.ino + '', // fake tag
         };
     }

@@ -3,7 +3,7 @@ const debug = _debug('solutions:storage:ftp');
 
 import { Interface as ReadLineInterface } from 'readline';
 
-import { ReadStreamOptions, StorageInterface } from '../../common/interfaces/storage.interface';
+import { FileInfoInterface, ReadStreamOptions, StorageInterface } from '../../common/interfaces/storage.interface';
 import { Storage } from '../../common/abstract/storage';
 
 export class Ftp extends Storage implements StorageInterface {
@@ -25,7 +25,7 @@ export class Ftp extends Storage implements StorageInterface {
 
     async sendStream(filePath, options: any = {}) {}
 
-    async getFileInfo(path_, options: any = {}) {
+    async getFileInfo(path_, options: any = {}): Promise<FileInfoInterface> {
         return {
             contentLength: 0,
             etag: '',

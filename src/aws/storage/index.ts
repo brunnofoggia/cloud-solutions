@@ -6,7 +6,7 @@ import { Interface as ReadLineInterface, createInterface } from 'readline';
 import stream from 'stream';
 
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
-import { ReadStreamOptions, StorageInterface } from '../../common/interfaces/storage.interface';
+import { FileInfoInterface, ReadStreamOptions, StorageInterface } from '../../common/interfaces/storage.interface';
 import { Storage as AStorage } from '../../common/abstract/storage';
 import { providerConfig, keyFields, libraries } from '../index';
 import { WriteStream } from './writeStream';
@@ -187,7 +187,7 @@ export class S3 extends AStorage implements StorageInterface {
         });
     }
 
-    async getFileInfo(path, options: any = {}) {
+    async getFileInfo(path, options: any = {}): Promise<FileInfoInterface> {
         this.isInitialized();
         const storage = await this.getInstance(options);
 
@@ -199,7 +199,7 @@ export class S3 extends AStorage implements StorageInterface {
         const data = await this._getFileInfo(params, storage);
 
         return {
-            contentLength: data.ContentLength,
+            contentLength: data.ContentLength as number,
             etag: data.ETag.replace(/"/g, ''),
         };
     }

@@ -19,7 +19,7 @@ export interface StorageInterface {
     readDirectory(directoryName?, options?): Promise<any[]>;
     getDirectoryContentLength(directoryName?, options?): Promise<number>;
     checkPathExists(directoryName?, options?): Promise<boolean>;
-    getFileInfo(path: string, options?);
+    getFileInfo(path: string, options?): Promise<FileInfoInterface>;
     copyFile(pathFrom, pathTo, options?: any): Promise<void>;
     // TODO: alias [to be removed]
     checkDirectoryContentLength(directoryName?, options?): Promise<boolean>;
@@ -30,4 +30,9 @@ export interface StorageInterface {
 export interface CompareSizeOptionsInterface {
     storageA: StorageInterface;
     storageB: StorageInterface;
+}
+
+export interface FileInfoInterface {
+    contentLength: number;
+    etag: any;
 }

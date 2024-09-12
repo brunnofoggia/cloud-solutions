@@ -6,7 +6,7 @@ import path from 'path';
 import { Interface as ReadLineInterface, createInterface } from 'readline';
 
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
-import { ReadStreamOptions, StorageInterface } from '../../common/interfaces/storage.interface';
+import { FileInfoInterface, ReadStreamOptions, StorageInterface } from '../../common/interfaces/storage.interface';
 import { Storage } from '../../common/abstract/storage';
 import { Fs } from '../../local/storage';
 import { BufferWritable } from '../../common/utils/bufferWritable';
@@ -361,7 +361,7 @@ export class Sftp extends Storage implements StorageInterface {
         return writeStream;
     }
 
-    async getFileInfo(path_, options: any = {}) {
+    async getFileInfo(path_, options: any = {}): Promise<FileInfoInterface> {
         this.isInitialized();
         const instance = await this.getInstance(options);
 
@@ -370,7 +370,7 @@ export class Sftp extends Storage implements StorageInterface {
 
         await this.closeInstanceIfNotGlobal(instance, options);
         return {
-            contentLength: data.size,
+            contentLength: data.size as number,
             etag: '',
         };
     }

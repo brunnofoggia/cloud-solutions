@@ -5,7 +5,7 @@ import { defaultsDeep, intersection, keys } from 'lodash';
 import { Interface as ReadLineInterface, createInterface } from 'readline';
 
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
-import { ReadStreamOptions, StorageInterface } from '../../common/interfaces/storage.interface';
+import { FileInfoInterface, ReadStreamOptions, StorageInterface } from '../../common/interfaces/storage.interface';
 import { Storage as AStorage } from '../../common/abstract/storage';
 import { providerConfig, keyFields } from '../index';
 import { WriteStream } from './writeStream';
@@ -162,7 +162,7 @@ export class Storage extends AStorage implements StorageInterface {
         });
     }
 
-    async getFileInfo(path, options: any = {}) {
+    async getFileInfo(path, options: any = {}): Promise<FileInfoInterface> {
         this.isInitialized();
         const storage = await this.getInstance(options);
         const Bucket = options.Bucket || this.getOptions().Bucket;
@@ -171,7 +171,7 @@ export class Storage extends AStorage implements StorageInterface {
         const data = await file.getMetadata();
 
         return {
-            contentLength: data[0].size,
+            contentLength: data[0].size as number,
             etag: data[0].etag,
         };
     }
