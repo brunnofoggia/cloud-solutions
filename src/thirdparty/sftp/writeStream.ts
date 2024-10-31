@@ -26,7 +26,6 @@ export class WriteStream extends _WriteStream implements WriteStreamInterface {
         return new Promise((resolve) => {
             this._stream.on('finish', async () => {
                 debug(`Data written into ${this.filePath}`);
-                this.options.closeInstance && (await this.options.closeInstance());
                 resolve(true);
             });
             this._stream.end();

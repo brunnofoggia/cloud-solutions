@@ -16,7 +16,6 @@ export class Sftp extends Storage implements StorageInterface {
     protected defaultOptions: any = {
         basePath: '',
         baseDir: '',
-        stayConnected: true,
         privateKeyStartsWith: '-----BEGIN RSA PRIVATE KEY-----',
         privateKeyEndsWith: '-----END RSA PRIVATE KEY-----',
     };
@@ -55,13 +54,8 @@ export class Sftp extends Storage implements StorageInterface {
         return bind(Fs.prototype.getBasePath, this)(options);
     }
 
-    isStayConnectActive() {
-        return !!this.options.stayConnected;
-    }
-
     async createGlobalInstance() {
-        this.instance = null;
-        if (this.isStayConnectActive()) this.instance = await this.createInstance(this.options);
+        this.instance = await this.createInstance(this.options);
     }
 
     async createInstance(options_: any = {}): Promise<any> {
@@ -81,7 +75,7 @@ export class Sftp extends Storage implements StorageInterface {
     }
 
     async getInstance(options: any = {}) {
-        return options.instance || (this.isStayConnectActive() ? this.instance : await this.createInstance(options));
+        return options.instance || this.instance;
     }
 
     filterAuthMethod(connectOptions) {
@@ -121,14 +115,9 @@ export class Sftp extends Storage implements StorageInterface {
         return connectOptions;
     }
 
-    async closeInstance(instance = null): Promise<any> {
-        let isGlobalInstance = false;
-        if (instance === null) {
-            instance = this.instance;
-            isGlobalInstance = true;
-        }
-        await this._closeInstance(instance);
-        if (isGlobalInstance) this.instance = null;
+    async closeInstance(): Promise<any> {
+        await this._closeInstance(this.instance);
+        this.instance = null;
     }
 
     async _closeInstance(instance): Promise<any> {
@@ -140,19 +129,8 @@ export class Sftp extends Storage implements StorageInterface {
     }
 
     async reconnectGlobalInstance() {
-        if (this.isStayConnectActive()) {
-            await this.closeInstance();
-            await this.createGlobalInstance();
-        }
-    }
-
-    async closeInstanceIfNotGlobal(instance, options: any = {}) {
-        // does not close instance when it was opened by other method
-        if (!options.instance) {
-            if (!this.isStayConnectActive()) {
-                await this._closeInstance(instance);
-            }
-        }
+        await this.closeInstance();
+        await this.createGlobalInstance();
     }
 
     checkOptions() {
@@ -181,7 +159,6 @@ export class Sftp extends Storage implements StorageInterface {
         const memoryStream = new BufferWritable();
         await instance.get(path, memoryStream);
 
-        await this.closeInstanceIfNotGlobal(instance, options);
         const content = memoryStream.getData(options.encode);
 
         return content;
@@ -206,7 +183,6 @@ export class Sftp extends Storage implements StorageInterface {
         } catch (err) {
             debug('fail on creating read stream', err);
         }
-        await this.closeInstanceIfNotGlobal(instance, options);
     }
 
     async createDirIfNotExists(directoryPath, options: any = {}) {
@@ -220,7 +196,6 @@ export class Sftp extends Storage implements StorageInterface {
         } catch (error) {
             console.error('>>>> error createDirIfNotExists', error);
         }
-        await this.closeInstanceIfNotGlobal(instance, options);
     }
 
     async createDirForFileIfNotExists(path_, options: any = {}) {
@@ -242,7 +217,6 @@ export class Sftp extends Storage implements StorageInterface {
             debug(`Fail sending file ${_path || filePath}: ${error}`);
             throw error;
         }
-        await this.closeInstanceIfNotGlobal(instance, options);
     }
 
     async deleteFile(filePath, options: any = {}) {
@@ -258,7 +232,6 @@ export class Sftp extends Storage implements StorageInterface {
             debug(`Warning: Fail deleting file ${_path || filePath}: ${error}`);
             result = StorageOutputEnum.NotFound;
         }
-        await this.closeInstanceIfNotGlobal(instance, options);
         return result;
     }
 
@@ -279,7 +252,6 @@ export class Sftp extends Storage implements StorageInterface {
                 throw error;
             }
         }
-        await this.closeInstanceIfNotGlobal(instance, options);
         return result;
     }
 
@@ -300,7 +272,6 @@ export class Sftp extends Storage implements StorageInterface {
         } catch (error) {
             return StorageOutputEnum.NotFound;
         }
-        await this.closeInstanceIfNotGlobal(instance, options);
     }
 
     async readDirectory(directoryPath = '', options: any = {}): Promise<any> {
@@ -327,7 +298,6 @@ export class Sftp extends Storage implements StorageInterface {
         } catch (error) {
             if (!options.silent) debug(`Fail reading directory ${finalPath || directoryPath}`, error);
         }
-        await this.closeInstanceIfNotGlobal(instance, options);
         return list;
     }
 
@@ -350,7 +320,6 @@ export class Sftp extends Storage implements StorageInterface {
                 defaultsDeep(
                     {
                         filePath: _path,
-                        closeInstance: () => this.closeInstanceIfNotGlobal(instance, options),
                     },
                     options,
                 ),
@@ -368,7 +337,6 @@ export class Sftp extends Storage implements StorageInterface {
         const fullpath = this.buildPath(path_, options);
         const data = await instance.stat(fullpath);
 
-        await this.closeInstanceIfNotGlobal(instance, options);
         return {
             contentLength: data.size as number,
             etag: '',
@@ -390,7 +358,6 @@ export class Sftp extends Storage implements StorageInterface {
         const { exists, result } = await this._checkPathExists(_path, { ...options, instance });
         if (exists && result === 'd') return super.checkPathExists(path_, { ...options, instance });
 
-        await this.closeInstanceIfNotGlobal(instance, options);
         return exists;
     }
 }

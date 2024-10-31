@@ -1,6 +1,6 @@
 {
     "name": "cloud-solutions",
-    "version": "1.52.1",
+    "version": "1.53.0",
     "description": "",
     "license": "ISC",
     "author": "Bruno Foggia",
@@ -20,6 +20,7 @@
         "test:clear": "npx jest --clearCache"
     },
     "devDependencies": {
+        "@aws-sdk/client-s3": "^3.658.1",
         "@commitlint/config-conventional": "^19.2.2",
         "@google-cloud/secret-manager": "^5.5.0",
         "@google-cloud/storage": "^7.11.0",

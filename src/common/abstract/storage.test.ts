@@ -7,6 +7,8 @@ const detectCloudName = function (storage) {
     switch (storage.constructor.name) {
         case 'S3':
             return 'aws';
+        case 'S3N':
+            return 'awsn';
         case 'Storage':
             return 'gcp';
         case 'Fs':
@@ -66,10 +68,16 @@ createInstance.shouldFail = async (storage, reference, options: any = {}) => {
 };
 
 const sendContent: any = {};
-sendContent.uploadFile = async (storage) => {
-    expect.assertions(1);
+
+sendContent._uploadFile = async (storage, path = '') => {
     const { mockFilePath, mockFileContent } = getVariables(storage);
-    await expect(storage.sendContent(mockFilePath, mockFileContent)).resolves.toBeUndefined();
+    if (!path) path = mockFilePath;
+    await expect(storage.sendContent(path, mockFileContent)).resolves.toBeUndefined();
+};
+
+sendContent.uploadFile = async (storage, path = '') => {
+    expect.assertions(1);
+    await sendContent._uploadFile(storage, path);
 };
 sendContent.uploadFileIntoSubDirectory = async (storage) => {
     expect.assertions(1);
@@ -94,20 +102,28 @@ const sendStream: any = {};
 sendStream.shouldReturnInstanceOfWriteStream = async (storage, reference) => {
     expect.assertions(1);
     const { mockFileStreamPath, mockFileStreamContent } = getVariables(storage);
-    const stream = await storage.sendStream(mockFileStreamPath);
+    let stream = await storage.sendStream(mockFileStreamPath);
     await stream.writeLine(mockFileStreamContent);
     await stream.end();
 
     expect(stream).toBeInstanceOf(reference);
+    stream = null;
+};
+
+sendStream._sendShortContent = async (storage) => {
+    const { mockFileStreamShortPath, mockFileStreamContent } = getVariables(storage);
+    let stream = await storage.sendStream(mockFileStreamShortPath);
+
+    await stream.writeLine(mockFileStreamContent);
+    await stream.end();
+    stream = null;
+    return { mockFileStreamShortPath, mockFileStreamContent };
 };
 
 sendStream.shouldSendShortContent = async (storage, sleep_ = 0) => {
     expect.assertions(1);
     const { mockFileStreamShortPath, mockFileStreamContent } = getVariables(storage);
-    const stream = await storage.sendStream(mockFileStreamShortPath);
-
-    await stream.writeLine(mockFileStreamContent);
-    await stream.end();
+    await sendStream._sendShortContent(storage);
 
     if (sleep_) await sleep(sleep_);
     await sendStream.checkFinalContent(storage, mockFileStreamShortPath, mockFileStreamContent);
@@ -129,7 +145,6 @@ sendStream.shouldSendLongContent = async (storage, path_ = '', sleep_ = 0) => {
 };
 
 sendStream.checkFinalContent = async (storage, mockFileStreamPath, finalContent) => {
-    expect.assertions(1);
     const value = await storage.readContent(mockFileStreamPath);
     expect(value).toEqual(finalContent);
 };
@@ -234,15 +249,19 @@ getFileInfo.shouldThrowErrorForUnexistentFile = async (storage) => {
 
 const cleanAfter = true;
 const deleteFile: any = {};
-deleteFile.shouldDo = async (storage) => {
+
+deleteFile.shouldDo = async (storage, path = '') => {
     if (!cleanAfter) return;
 
     expect.assertions(1);
     const { mockFilePath } = getVariables(storage);
-    await storage.deleteFile(mockFilePath);
-    // this timer is to give aws some air to finish delete process
+    if (!path) path = mockFilePath;
+    await storage.deleteFile(path);
+
+    // XXX: this timer is to give aws some air to finish delete process
     await sleep(500);
-    await expect(() => storage.readContent(mockFilePath)).rejects.toThrow();
+
+    await expect(() => storage.readContent(path)).rejects.toThrow();
 };
 
 const deleteDirectory: any = {};

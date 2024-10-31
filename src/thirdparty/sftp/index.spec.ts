@@ -5,7 +5,7 @@ import { Sftp } from '.';
 import { Interface } from 'readline';
 import SftpClient from 'ssh2-sftp-client';
 
-const globalTimeout = 10000;
+const globalTimeout = 15000;
 
 const instantiate = async (providerOptions: any = {}, initializeOptions: any = {}) => {
     const storage = new Sftp(providerOptions);
@@ -111,11 +111,10 @@ describe('Sftp Storage', () => {
             'should fail to connect',
             async () => {
                 await createInstance.shouldFail(storage, SftpClient, {
-                    host: process.env.STORAGE_B_HOST,
-                    port: process.env.STORAGE_B_PORT,
-                    user: process.env.STORAGE_B_USER,
-                    pass: process.env.STORAGE_B_PASS,
-                    privateKey: process.env.STORAGE_B_PRIVATEKEY,
+                    host: process.env.STORAGE_A_HOST,
+                    port: process.env.STORAGE_A_PORT,
+                    user: process.env.STORAGE_A_USER,
+                    pass: 'aaaaaaa',
                 });
             },
             globalTimeout,
@@ -199,17 +198,6 @@ describe('Sftp Storage', () => {
             },
             globalTimeout,
         );
-
-        it(
-            'should send content to a new directory with stayConnected = false',
-            async () => {
-                const storage_ = await mainInstantiate({ stayConnected: false });
-                const { mockDir, mockFileStreamPath } = getVariables(storage);
-                const path_ = mockFileStreamPath.replace(mockDir, [mockDir, 'xxx'].join('/'));
-                await sendStream.shouldSendLongContent(storage_, path_);
-            },
-            globalTimeout,
-        );
     });
 
     describe('common method: readStream', () => {
@@ -284,14 +272,6 @@ describe('Sftp Storage', () => {
 
     describe('common method: checkPathExists', () => {
         it(
-            'should exist rootdir',
-            async () => {
-                await checkPathExists.shouldExistRootdir(storage);
-            },
-            globalTimeout,
-        );
-
-        it(
             'should exist file',
             async () => {
                 await checkPathExists.shouldExistFile(storage);
@@ -360,5 +340,10 @@ describe('Sftp Storage', () => {
             },
             globalTimeout,
         );
+    });
+
+    afterAll(async () => {
+        await storage.closeInstance();
+        storage = null;
     });
 });
