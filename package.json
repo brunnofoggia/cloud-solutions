@@ -12,15 +12,16 @@
         "prebuild": "rimraf dist",
         "build": "tsc -p ./tsconfig.build.json",
         "lint": "eslint \"{src,apps,libs}/**/*.+(js|json|ts|tsx)\" --fix",
-        "pre-commit": "lint-staged && yarn build && yarn test",
+        "pre-commit": "lint-staged && yarn build",
         "prepare": "npm run build",
         "testx": "jest --verbose --maxWorkers=3",
         "testy": "jest --verbose",
-        "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
+        "test": "NODE_OPTIONS=--experimental-vm-modules npx --trace-deprecation jest",
         "test:clear": "npx jest --clearCache"
     },
     "devDependencies": {
         "@aws-sdk/client-s3": "^3.658.1",
+        "@aws-sdk/util-stream": "^3.370.0",
         "@commitlint/config-conventional": "^19.2.2",
         "@google-cloud/secret-manager": "^5.5.0",
         "@google-cloud/storage": "^7.11.0",

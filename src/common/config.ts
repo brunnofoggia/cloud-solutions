@@ -1,4 +1,5 @@
 import Aws from '../aws/index';
+import Awsn from '../awsn/index';
 import Gcp from '../gcp/index';
 import Local from '../local/index';
 import { RabbitMQ } from '../thirdparty/rabbitmq/index';
@@ -26,6 +27,20 @@ adapters[SolutionEnum.STORAGE][ProviderEnum.AWS] = Aws.StorageAdapter;
 adapters[SolutionEnum.STORAGE][Aws.SolutionsEnum.STORAGE] = Aws.StorageAdapter;
 adapters[SolutionEnum.EVENTS][ProviderEnum.AWS] = Aws.EventsAdapter;
 adapters[SolutionEnum.EVENTS][Aws.SolutionsEnum.EVENTS] = Aws.EventsAdapter;
+
+// AWS
+adapters[ProviderEnum.AWSN] = {};
+adapters[ProviderEnum.AWSN][SolutionEnum.CLOUD_PROVIDER] = Awsn.providerConfig;
+// adapters[ProviderEnum.AWSN][SolutionEnum.SECRETS] = Awsn.SecretsAdapter;
+adapters[ProviderEnum.AWSN][SolutionEnum.STORAGE] = Awsn.StorageAdapter;
+// adapters[ProviderEnum.AWSN][SolutionEnum.EVENTS] = Awsn.EventsAdapter;
+adapters[SolutionEnum.CLOUD_PROVIDER][ProviderEnum.AWSN] = Awsn.providerConfig;
+// adapters[SolutionEnum.SECRETS][ProviderEnum.AWSN] = Awsn.SecretsAdapter;
+// adapters[SolutionEnum.SECRETS][Awsn.SolutionsEnum.SECRETS] = Awsn.SecretsAdapter;
+adapters[SolutionEnum.STORAGE][ProviderEnum.AWSN] = Awsn.StorageAdapter;
+adapters[SolutionEnum.STORAGE][Awsn.SolutionsEnum.STORAGE] = Awsn.StorageAdapter;
+// adapters[SolutionEnum.EVENTS][ProviderEnum.AWSN] = Awsn.EventsAdapter;
+// adapters[SolutionEnum.EVENTS][Awsn.SolutionsEnum.EVENTS] = Awsn.EventsAdapter;
 
 // GCP
 adapters[ProviderEnum.GCP] = {};

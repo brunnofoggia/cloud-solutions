@@ -38,9 +38,13 @@ export abstract class Storage extends Solution {
         null;
     }
 
-    mergeStorageOptions(options = {}, keyFields) {
-        const omitFields = [...storageInternalOptions, ...keys(keyFields)];
-        return defaultsDeep({}, omit(this.getOptions(), 'params'), omit(options, 'params', ...omitFields));
+    mergeStorageOptions(options = {}, keyFieldsToOmit) {
+        const omitFields = [...storageInternalOptions, ...keys(keyFieldsToOmit)];
+        return defaultsDeep({}, omit(this.getOptions(), 'params'), this.filterOptions(options, omitFields));
+    }
+
+    filterOptions(options = {}, keyFieldsToOmit) {
+        return omit(options, 'params', ...keys(keyFieldsToOmit));
     }
 
     async getDirectoryContentLength(directoryPath = '', options: any = {}) {
@@ -52,6 +56,7 @@ export abstract class Storage extends Solution {
         }
     }
 
+    // can be used to check if a file existe or directory exists (directory must have files inside)
     async checkPathExists(directoryPath = '', options: any = {}) {
         const contentLength = await this.getDirectoryContentLength(directoryPath, options);
         return contentLength > 0;

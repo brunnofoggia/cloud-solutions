@@ -4,13 +4,16 @@ const debug = _debug('solutions:storage:aws');
 import { omit, intersection, keys, map, defaultsDeep } from 'lodash';
 import { Interface as ReadLineInterface, createInterface } from 'readline';
 import stream from 'stream';
+import { GetObjectCommand } from '@aws-sdk/client-s3';
+import { Readable } from 'stream';
 
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
 import { FileInfoInterface, ReadStreamOptions, StorageInterface } from '../../common/interfaces/storage.interface';
 import { Storage as AStorage } from '../../common/abstract/storage';
-import { providerConfig, keyFields, libraries } from '../index';
+import { keyFields, libraries } from '../index';
 import { WriteStream } from './writeStream';
 import { copyFileOptionsDefault, CopyFileOptionsInterface } from './interface';
+import { streamToString } from '../../common/utils/streamToString';
 
 export class S3 extends AStorage implements StorageInterface {
     protected libraries = libraries;
@@ -25,45 +28,53 @@ export class S3 extends AStorage implements StorageInterface {
     async getInstance(options: any = {}) {
         if (intersection(keys(options), keys(keyFields)).length > 0) {
             const instance = await this.createInstance(options);
-            await providerConfig(this.getProviderOptions(keyFields));
             return instance;
         }
         return this.instance;
     }
 
     async createInstance(options: any = {}) {
-        await providerConfig(this.mergeProviderOptions(options, keyFields));
-        const AWS = this.getLibrary('AWS');
-        return new AWS.S3({});
+        const _options = this.mergeProviderOptions(options, keyFields);
+        const S3Client = this.getLibrary('S3Client');
+
+        const providerOptions = {
+            region: _options.region,
+            credentials: {
+                accessKeyId: _options.user,
+                secretAccessKey: _options.pass,
+            },
+        };
+
+        return new S3Client(providerOptions);
     }
 
     async readBinary(path, options: any = {}) {
-        this.isInitialized();
-        const storage = await this.getInstance(options);
-
-        const storageParams = {
-            ...this.mergeStorageOptions(options, keyFields),
-            Key: path,
-        };
-
-        const data = await storage.getObject(storageParams).promise();
-        return data?.Body;
+        const stream = (await this.readStream(path, options)) as Readable;
+        const data = await streamToString(stream, options.charset || 'binary');
+        return data;
     }
 
     async readContent(path, options: any = {}) {
-        return (await this.readBinary(path, options)).toString(options.charset || 'utf-8');
+        !options.charset && (options.charset = 'utf-8');
+        return this.readBinary(path, options);
     }
 
     async readStream(path, options: Partial<ReadStreamOptions> = {}): Promise<ReadLineInterface | NodeJS.ReadableStream> {
         this.isInitialized();
         const storage = await this.getInstance(options);
 
-        const storageParams = {
-            ...this.mergeStorageOptions(options, keyFields),
+        const command = new GetObjectCommand({
+            Bucket: this.getOptions().Bucket,
             Key: path,
-        };
+            ...this.filterOptions(options, keyFields),
+        });
 
-        const data = storage.getObject(storageParams).createReadStream();
+        const response = await storage.send(command);
+        const data = response?.Body;
+
+        if (!data) {
+            throw new Error('Arquivo não encontrado ou vazio');
+        }
         if (options.getRawStream) return data;
 
         const rl = createInterface({
@@ -76,7 +87,8 @@ export class S3 extends AStorage implements StorageInterface {
 
     async _sendContent(filePath, content, options: any = {}) {
         this.isInitialized();
-        const storage = await this.getInstance(options);
+        const s3Client = await this.getInstance(options);
+        const PutObjectCommand = this.getLibrary('S3PutObjectCommand');
 
         const uploadParams = {
             ...this.mergeStorageOptions(options, keyFields),
@@ -85,7 +97,8 @@ export class S3 extends AStorage implements StorageInterface {
             Body: typeof content === 'string' ? Buffer.from(content) : content,
         };
 
-        await storage.upload(uploadParams, options.params || {}).promise();
+        const command = new PutObjectCommand(uploadParams);
+        await s3Client.send(command);
         debug(`File sent to ${filePath}`);
     }
 
