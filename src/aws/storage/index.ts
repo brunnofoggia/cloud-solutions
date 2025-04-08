@@ -63,7 +63,7 @@ export class S3 extends AStorage implements StorageInterface {
             Key: path,
         };
 
-        const data = storage.getObject(storageParams).createReadStream();
+        const data = await storage.getObject(storageParams).createReadStream();
         if (options.getRawStream) return data;
 
         const rl = createInterface({
