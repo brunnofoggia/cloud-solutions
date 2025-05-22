@@ -1,10 +1,9 @@
 import _debug from 'debug';
 const debug = _debug('solutions:storage:aws');
 
-import { omit, intersection, keys, map, defaultsDeep } from 'lodash';
+import { omit, intersection, keys, map, defaultsDeep, chain } from 'lodash';
 import { Interface as ReadLineInterface, createInterface } from 'readline';
 import stream from 'stream';
-import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
@@ -61,6 +60,7 @@ export class S3 extends AStorage implements StorageInterface {
 
     async readStream(path, options: Partial<ReadStreamOptions> = {}): Promise<ReadLineInterface | NodeJS.ReadableStream> {
         this.isInitialized();
+        const GetObjectCommand = this.getLibrary('S3GetObjectCommand');
         const storage = await this.getInstance(options);
 
         const command = new GetObjectCommand({
@@ -70,15 +70,15 @@ export class S3 extends AStorage implements StorageInterface {
         });
 
         const response = await storage.send(command);
-        const data = response?.Body;
+        const rawStream = response?.Body;
 
-        if (!data) {
+        if (!rawStream) {
             throw new Error('Arquivo não encontrado ou vazio');
         }
-        if (options.getRawStream) return data;
+        if (options.getRawStream) return rawStream;
 
         const rl = createInterface({
-            input: data,
+            input: rawStream,
             crlfDelay: Infinity,
         });
 
@@ -104,7 +104,8 @@ export class S3 extends AStorage implements StorageInterface {
 
     async sendStream(filePath, options: any = {}) {
         this.isInitialized();
-        const storage = await this.getInstance(options);
+        const s3Client = await this.getInstance(options);
+        const Upload = this.getLibrary('S3Upload');
 
         const _stream = new stream.PassThrough();
         // Configura as opções do upload
@@ -114,27 +115,29 @@ export class S3 extends AStorage implements StorageInterface {
             Body: _stream,
         };
 
-        const upload = storage
-            .upload(uploadParams, {
-                queueSize: this.options.params.streamQueueSize, // optional concurrency configuration
-                partSize: this.options.params.streamPartSize, // optional size of each part
-                leavePartsOnError: true, // optional manually handle dropped parts
-                ...(options.params || {}),
-            })
-            .promise();
+        const upload = new Upload({
+            client: s3Client,
+            params: uploadParams,
+            queueSize: this.options.params.streamQueueSize, // optional concurrency configuration
+            partSize: this.options.params.streamPartSize, // optional size of each part
+            leavePartsOnError: true, // optional manually handle dropped parts
+            ...(options.params || {}),
+        });
 
         return new WriteStream(_stream, { filePath, upload });
     }
 
     async deleteFile(filePath, options: any = {}) {
         this.isInitialized();
-        const storage = await this.getInstance(options);
-        await storage
-            .deleteObject({
-                ...this.mergeStorageOptions(options, keyFields),
-                Key: filePath,
-            })
-            .promise();
+        const s3Client = await this.getInstance(options);
+        const DeleteObjectCommand = this.getLibrary('S3DeleteObjectCommand');
+
+        const deleteParams = {
+            ...this.mergeStorageOptions(options, keyFields),
+            Key: filePath,
+        };
+        const command = new DeleteObjectCommand(deleteParams);
+        await s3Client.send(command);
         debug(`Delete file ${filePath}`);
 
         return StorageOutputEnum.Success;
@@ -142,32 +145,42 @@ export class S3 extends AStorage implements StorageInterface {
 
     async deleteDirectory(directoryPath, options: any = {}) {
         this.isInitialized();
-        const storage = await this.getInstance(options);
+        const s3Client = await this.getInstance(options);
+        const ListObjectsV2Command = this.getLibrary('S3ListObjectsV2Command');
+        const DeleteObjectsCommand = this.getLibrary('S3DeleteObjectsCommand');
 
         try {
-            const objects = await storage
-                .listObjectsV2({
-                    Prefix: directoryPath,
-                    ...this.mergeStorageOptions(options, keyFields),
-                })
-                .promise();
+            const listParams = {
+                Prefix: directoryPath,
+                ...this.mergeStorageOptions(options, keyFields),
+            };
+            const listCommand = new ListObjectsV2Command(listParams);
+            const objects = await s3Client.send(listCommand);
 
             const deleteParams = {
                 ...omit(this.getOptions(), 'params'),
-                Delete: { Objects: objects.Contents.map(({ Key }) => ({ Key })) },
+                Delete: {
+                    Objects: objects.Contents.map((object) => ({ Key: object.Key })),
+                    Quiet: true,
+                },
             };
 
-            await storage.deleteObjects(deleteParams).promise();
+            // Delete the objects returned in the directory
+            const deleteCommand = new DeleteObjectsCommand(deleteParams);
+            await s3Client.send(deleteCommand);
 
+            // If the directory is truncated, we need to delete the rest of the objects
             if (objects.IsTruncated) {
                 await this.deleteDirectory(directoryPath);
             } else {
-                await storage
-                    .deleteObject({
-                        ...omit(this.getOptions(), 'params'),
-                        Key: directoryPath,
-                    })
-                    .promise();
+                // Delete the directory itself
+                const deleteSelfDirParams = {
+                    ...omit(this.getOptions(), 'params'),
+                    Key: directoryPath,
+                };
+
+                const deleteSelfDirCommand = new DeleteObjectsCommand(deleteSelfDirParams);
+                await s3Client.send(deleteSelfDirCommand);
             }
         } catch (error) {
             return StorageOutputEnum.NotFound;
@@ -178,26 +191,25 @@ export class S3 extends AStorage implements StorageInterface {
 
     async readDirectory(directoryPath = '', _options: any = {}) {
         this.isInitialized();
-        const storage = await this.getInstance(_options);
+        const s3Client = await this.getInstance(_options);
+        const ListObjectsV2Command = this.getLibrary('S3ListObjectsV2Command');
 
         const options: any = this.mergeStorageOptions(_options, keyFields);
         directoryPath && (options.Prefix = directoryPath);
 
-        const objects = await storage.listObjectsV2(options).promise();
+        const command = new ListObjectsV2Command(options);
+        const objects = await s3Client.send(command);
 
-        return map(objects?.Contents || [], (item) => item?.Key);
+        const contentList = map(objects?.Contents || [], (item) => item?.Key);
+        return this.filterFilesOnly(contentList);
     }
 
-    _getFileInfo(params = {}, storage): Promise<any> {
-        return new Promise((resolve, reject) => {
-            storage.headObject(params, (err, data) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(data);
-                }
-            });
-        });
+    async _getFileInfo(params = {}, storage): Promise<any> {
+        const HeadObjectCommand = this.getLibrary('S3HeadObjectCommand');
+        const command = new HeadObjectCommand(params);
+
+        const response = await storage.send(command);
+        return response;
     }
 
     async getFileInfo(path, options: any = {}): Promise<FileInfoInterface> {
@@ -220,11 +232,11 @@ export class S3 extends AStorage implements StorageInterface {
     async copyFile(pathFrom, pathTo, options: Partial<CopyFileOptionsInterface> = {}): Promise<void> {
         this.isInitialized();
         const _options: Partial<CopyFileOptionsInterface> = defaultsDeep({}, options, copyFileOptionsDefault);
-        const s3 = await this.getInstance(_options);
+        const s3Client = await this.getInstance(_options);
+        const CopyObjectCommand = this.getLibrary('S3CopyObjectCommand');
 
         const sourceStorage = (_options.storageFrom || this) as S3;
         const destinationStorage = (_options.storageTo || this) as S3;
-
         const sourceBucket = sourceStorage.getOptions().Bucket;
         const destinationBucket = destinationStorage.getOptions().Bucket;
 
@@ -239,7 +251,8 @@ export class S3 extends AStorage implements StorageInterface {
         };
 
         if (options.clear) await destinationStorage.deleteFile(pathTo);
-        await s3.copyObject(copyParams).promise();
+        const command = new CopyObjectCommand(copyParams);
+        await s3Client.send(command);
         debug(`File copied from "${sourceBucket}/${pathFrom}" to "${destinationBucket}/${pathTo}"`);
 
         if (_options.checkSize) {

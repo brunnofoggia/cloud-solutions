@@ -172,7 +172,8 @@ export class S3 extends AStorage implements StorageInterface {
 
         const objects = await storage.listObjectsV2(options).promise();
 
-        return map(objects?.Contents || [], (item) => item?.Key);
+        const contentList = map(objects?.Contents || [], (item) => item?.Key);
+        return this.filterFilesOnly(contentList);
     }
 
     _getFileInfo(params = {}, storage): Promise<any> {

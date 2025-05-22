@@ -71,6 +71,10 @@ export abstract class Storage extends Solution {
         return FileAInfo.contentLength === fileBInfo.contentLength;
     }
 
+    filterFilesOnly(files: string[]) {
+        return files.filter((item) => !item.endsWith('/'));
+    }
+
     // TODO: alias [to be removed]
     async checkDirectoryContentLength(directoryPath = '', options: any = {}) {
         return await this.checkPathExists(directoryPath, options);

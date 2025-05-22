@@ -46,6 +46,34 @@ export const libraries = {
         path: '@aws-sdk/client-s3',
         key: 'PutObjectCommand',
     },
+    S3Upload: {
+        path: '@aws-sdk/lib-storage',
+        key: 'Upload',
+    },
+    S3GetObjectCommand: {
+        path: '@aws-sdk/client-s3',
+        key: 'GetObjectCommand',
+    },
+    S3ListObjectsV2Command: {
+        path: '@aws-sdk/client-s3',
+        key: 'ListObjectsV2Command',
+    },
+    S3HeadObjectCommand: {
+        path: '@aws-sdk/client-s3',
+        key: 'HeadObjectCommand',
+    },
+    S3CopyObjectCommand: {
+        path: '@aws-sdk/client-s3',
+        key: 'CopyObjectCommand',
+    },
+    S3DeleteObjectCommand: {
+        path: '@aws-sdk/client-s3',
+        key: 'DeleteObjectCommand',
+    },
+    S3DeleteObjectsCommand: {
+        path: '@aws-sdk/client-s3',
+        key: 'DeleteObjectsCommand',
+    },
 };
 
 export default {

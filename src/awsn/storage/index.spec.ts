@@ -66,7 +66,7 @@ describe('Aws Storage', () => {
         });
     });
 
-    describe('common method: sendContent', () => {
+    describe('specific method: sendContent', () => {
         it('upload file', async () => {
             await sendContent.uploadFile(storage);
         });
@@ -76,7 +76,7 @@ describe('Aws Storage', () => {
         });
     });
 
-    describe('common method: readContent', () => {
+    describe('specific method: readContent', () => {
         it('should match content', async () => {
             await readContent.shouldMatchContent(storage);
         });
@@ -86,7 +86,7 @@ describe('Aws Storage', () => {
         });
     });
 
-    describe('common method: sendStream', () => {
+    describe('specific method: sendStream', () => {
         it('should return instance of WriteStream', async () => {
             await sendStream.shouldReturnInstanceOfWriteStream(storage, WriteStream);
         });
@@ -100,7 +100,7 @@ describe('Aws Storage', () => {
         });
     });
 
-    describe('common method: readStream', () => {
+    describe('specific method: readStream', () => {
         it('should be instance of Interface', async () => {
             await readStream.shouldReturnInstanceOfInterface(storage, Interface);
         });
@@ -110,101 +110,101 @@ describe('Aws Storage', () => {
         });
     });
 
-    // describe('common method: readDirectory', () => {
-    //     it('should have content', async () => {
-    //         await readDirectory.shouldHaveContent(storage);
-    //     });
+    describe('specific method: readDirectory', () => {
+        it('should have content', async () => {
+            await readDirectory.shouldHaveContent(storage);
+        });
 
-    //     it('should match content list', async () => {
-    //         await readDirectory.shouldMatchContentList(storage);
-    //     });
+        it('should match content list', async () => {
+            await readDirectory.shouldMatchContentList(storage);
+        });
 
-    //     it('should have nothing', async () => {
-    //         await readDirectory.shouldHaveNothing(storage);
-    //     });
-    // });
+        it('should have nothing', async () => {
+            await readDirectory.shouldHaveNothing(storage);
+        });
+    });
 
-    // describe('common method: getDirectoryContentLength', () => {
-    //     it('should have something into rootdir', async () => {
-    //         await getDirectoryContentLength.shouldHaveSomethingIntoRootdir(storage);
-    //     });
+    describe('common method: getDirectoryContentLength', () => {
+        it('should have something into rootdir', async () => {
+            await getDirectoryContentLength.shouldHaveSomethingIntoRootdir(storage);
+        });
 
-    //     it('should have something into dir', async () => {
-    //         await getDirectoryContentLength.shouldHaveSomethingIntoDir(storage);
-    //     });
+        it('should have something into dir', async () => {
+            await getDirectoryContentLength.shouldHaveSomethingIntoDir(storage);
+        });
 
-    //     it('should have nothing into unexistent directory', async () => {
-    //         await getDirectoryContentLength.shouldHaveNothingIntoUnexistentDirectory(storage);
-    //     });
-    // });
+        it('should have nothing into unexistent directory', async () => {
+            await getDirectoryContentLength.shouldHaveNothingIntoUnexistentDirectory(storage);
+        });
+    });
 
-    // describe('common method: checkPathExists', () => {
-    //     it('should exist rootdir', async () => {
-    //         await checkPathExists.shouldExistRootdir(storage);
-    //     });
+    describe('common method: checkPathExists', () => {
+        it('should exist rootdir', async () => {
+            await checkPathExists.shouldExistRootdir(storage);
+        });
 
-    //     it('should exist dir', async () => {
-    //         await checkPathExists.shouldExistDir(storage);
-    //     });
+        it('should exist dir', async () => {
+            await checkPathExists.shouldExistDir(storage);
+        });
 
-    //     it('should not exist', async () => {
-    //         await checkPathExists.shouldNotExist(storage);
-    //     });
-    // });
+        it('should not exist', async () => {
+            await checkPathExists.shouldNotExist(storage);
+        });
+    });
 
-    // describe('common method: getFileInfo', () => {
-    //     it('should return file info', async () => {
-    //         await getFileInfo.shouldReturnFileInfo(storage);
-    //     });
+    describe('specific method: getFileInfo', () => {
+        it('should return file info', async () => {
+            await getFileInfo.shouldReturnFileInfo(storage);
+        });
 
-    //     it('should throw error for unexistent file', async () => {
-    //         await getFileInfo.shouldThrowErrorForUnexistentFile(storage);
-    //     });
-    // });
+        it('should throw error for unexistent file', async () => {
+            await getFileInfo.shouldThrowErrorForUnexistentFile(storage);
+        });
+    });
 
-    // describe('specific method: copyFile', () => {
-    //     it('should make a copy', async () => {
-    //         expect.assertions(1);
-    //         const { mockFilePath, mockCopyFilePath } = getVariables(storage);
-    //         await expect(() => storage.copyFile(mockFilePath, mockCopyFilePath, { checkSize: false })).not.toThrow();
-    //     });
-    // });
+    describe('specific method: copyFile', () => {
+        it('should make a copy', async () => {
+            expect.assertions(1);
+            const { mockFilePath, mockCopyFilePath } = getVariables(storage);
+            await expect(() => storage.copyFile(mockFilePath, mockCopyFilePath, { checkSize: false })).not.toThrow();
+        });
+    });
 
-    // describe('specific method: compareSize', () => {
-    //     it('should compare source with destination size', async () => {
-    //         expect.assertions(1);
-    //         const { mockFilePath, mockCopyFilePath } = getVariables(storage);
-    //         await expect(() => storage.compareSize(mockFilePath, mockCopyFilePath)).toBeTruthy();
-    //     });
-    // });
+    describe('common method: compareSize', () => {
+        it('should compare source with destination size', async () => {
+            expect.assertions(1);
+            const { mockFilePath, mockCopyFilePath } = getVariables(storage);
+            await expect(() => storage.compareSize(mockFilePath, mockCopyFilePath)).toBeTruthy();
+        });
+    });
 
-    // describe('specific method: copyFile + move', () => {
-    //     it('should copy to and delete source ', async () => {
-    //         expect.assertions(3);
-    //         const { mockCopyFilePath, mockCopyBFilePath } = getVariables(storage);
-    //         await expect(() => storage.copyFile(mockCopyFilePath, mockCopyBFilePath, { clear: true, move: true })).not.toThrow();
-    //         await sleep(500);
-    //         await expect(() => storage.getFileInfo(mockCopyFilePath)).rejects.toThrow();
+    describe('specific method: copyFile + move', () => {
+        it('should copy to and delete source ', async () => {
+            expect.assertions(3);
+            const { mockCopyFilePath, mockCopyBFilePath } = getVariables(storage);
+            await expect(() => storage.copyFile(mockCopyFilePath, mockCopyBFilePath, { clear: true, move: true })).not.toThrow();
+            await sleep(500);
+            await expect(() => storage.getFileInfo(mockCopyFilePath)).rejects.toThrow();
 
-    //         await storage.deleteFile(mockCopyBFilePath);
-    //         await sleep(500);
-    //         await expect(() => storage.readContent(mockCopyBFilePath)).rejects.toThrow();
-    //     });
-    // });
+            await storage.deleteFile(mockCopyBFilePath);
+            await sleep(500);
+            await expect(() => storage.readContent(mockCopyBFilePath)).rejects.toThrow();
+        });
+    });
 
-    // describe('common method: deleteFile', () => {
-    //     it('should do', async () => {
-    //         await deleteFile.shouldDo(storage);
-    //     });
-    // });
+    describe('specific method: deleteFile', () => {
+        it('should do', async () => {
+            await deleteFile.shouldDo(storage);
+        });
+    });
 
-    // describe('common method: deleteDirectory', () => {
-    //     it('should delete recursively', async () => {
-    //         await deleteDirectory.shouldDeleteRecursively(storage);
-    //     });
+    describe('specific method: deleteDirectory', () => {
+        it('should delete recursively', async () => {
+            await deleteDirectory.shouldDeleteRecursively(storage);
+        });
 
-    //     it('should omit deletion of unexistent directory', async () => {
-    //         await deleteDirectory.shouldOmitDeletionOfUnexistentDirectory(storage);
-    //     });
-    // });
+        it('should omit deletion of unexistent directory', async () => {
+            await deleteDirectory.shouldOmitDeletionOfUnexistentDirectory(storage);
+        });
+    });
 });
