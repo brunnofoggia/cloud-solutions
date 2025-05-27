@@ -1,7 +1,7 @@
 import _debug from 'debug';
 const debug = _debug('solutions:storage:sftp');
 
-import { bind, defaultsDeep, difference, intersection, pick, remove } from 'lodash';
+import { bind, defaultsDeep, difference, intersection, pick, remove, set } from 'lodash';
 import path from 'path';
 import { Interface as ReadLineInterface, createInterface } from 'readline';
 
@@ -18,6 +18,7 @@ export class Sftp extends Storage implements StorageInterface {
         baseDir: '',
         privateKeyStartsWith: '-----BEGIN RSA PRIVATE KEY-----',
         privateKeyEndsWith: '-----END RSA PRIVATE KEY-----',
+        connectionTimeout: 1000 * 60 * 3, // 3 minutes
     };
     instance: any;
 
@@ -67,15 +68,20 @@ export class Sftp extends Storage implements StorageInterface {
 
         const sftp = new SftpClient();
         await sftp.connect({ ...connectOptions });
+        sftp.isConnected = true;
 
         // to avoid problem mentioned at https://github.com/theophilusx/ssh2-sftp-client?tab=readme-ov-file#dont-re-use-sftpclient-objects
         sftp.connect = (f) => f;
+
+        // avoid open connection for too long
+        setTimeout(() => this._closeInstance(sftp), this.options.connectionTimeout);
 
         return sftp;
     }
 
     async getInstance(options: any = {}) {
-        return options.instance || this.instance;
+        const instance = options.instance || this.instance;
+        return instance?.isConnected ? instance : await this.createInstance(options);
     }
 
     filterAuthMethod(connectOptions) {
@@ -122,9 +128,12 @@ export class Sftp extends Storage implements StorageInterface {
 
     async _closeInstance(instance): Promise<any> {
         try {
-            if (instance) return await instance.end();
+            if (instance?.isConnected && instance?.end) {
+                await instance.end();
+                instance.isConnected = false;
+            }
         } catch (error) {
-            error;
+            console.error('Error closing SFTP instance:', error);
         }
     }
 

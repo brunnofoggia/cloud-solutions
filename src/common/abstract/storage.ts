@@ -78,4 +78,8 @@ export abstract class Storage extends Solution {
     async copyFile(pathFrom, pathTo, options: any = {}): Promise<void> {
         throw new Error('Method not implemented');
     }
+
+    async closeInstance(): Promise<any> {}
+
+    async _closeInstance(instance): Promise<any> {}
 }
