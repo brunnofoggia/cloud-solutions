@@ -25,6 +25,8 @@ export interface StorageInterface {
     checkDirectoryContentLength(directoryName?, options?): Promise<boolean>;
     checkDirectoryExists(directoryName?, options?): Promise<boolean>;
     createDirIfNotExists(path: string);
+    closeInstance(): Promise<any>;
+    _closeInstance(instance): Promise<any>;
 }
 
 export interface CompareSizeOptionsInterface {
