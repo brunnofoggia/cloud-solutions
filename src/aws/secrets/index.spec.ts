@@ -1,8 +1,9 @@
 import dotenv from 'dotenv';
+import { keys, pick } from 'lodash';
+import { SSMClient } from '@aws-sdk/client-ssm';
+
 import { ParameterStore } from '.';
 import { mockInvalidPath, mockParameter, mockParameterKeys, mockPath, mockSecret } from '@test/mocks/aws/secrets.mock';
-import AWS from 'aws-sdk';
-import { keys, pick } from 'lodash';
 
 dotenv.config({ path: 'test/env/aws/.env' });
 
@@ -28,14 +29,14 @@ describe('Aws Secrets', () => {
     describe('method: getInstance', () => {
         it('value should be instance of AWS SSM', async () => {
             const value = await secrets.getInstance();
-            expect(value).toBeInstanceOf(AWS.SSM);
+            expect(value).toBeInstanceOf(SSMClient);
         });
     });
 
     describe('method: createInstance', () => {
         it('value should be instance of AWS SSM', async () => {
             const value = await secrets.createInstance();
-            expect(value).toBeInstanceOf(AWS.SSM);
+            expect(value).toBeInstanceOf(SSMClient);
         });
     });
 
@@ -52,12 +53,14 @@ describe('Aws Secrets', () => {
 
     describe('method: request', () => {
         it('should return the parameter promise', async () => {
-            const value = await secrets.request('getParameter', { Name: mockPath });
+            const command = secrets._buildCommand(mockPath);
+            const value = await secrets.request(command);
             expect(keys(pick(value?.Parameter || {}, ...mockParameterKeys))).toEqual(mockParameterKeys);
         });
 
         it('invalid path should throw and error', async () => {
-            await expect(secrets.request('', mockInvalidPath)).rejects.toThrow();
+            const command = secrets._buildCommand(mockInvalidPath);
+            await expect(secrets.request(command)).rejects.toThrow();
         });
     });
 

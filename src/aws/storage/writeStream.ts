@@ -22,8 +22,9 @@ export class WriteStream extends _WriteStream implements WriteStreamInterface {
     }
 
     async end() {
+        const promise = this.upload.done();
         this._stream.end();
-        await this.upload;
+        await promise;
         debug(`Data written into ${this.filePath}`);
     }
 }

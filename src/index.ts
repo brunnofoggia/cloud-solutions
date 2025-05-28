@@ -5,7 +5,7 @@ import { ProviderEnum } from './common/types/provider.enum';
 import { StorageOutputEnum } from './common/types/storageOutput.enum';
 import { LineBreakerEnum } from './common/types/lineBreaker.enum';
 
-import Aws from './aws';
+import Aws from './awsd';
 import Local from './local';
 import { RabbitMQ } from './thirdparty/rabbitmq';
 

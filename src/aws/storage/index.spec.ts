@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: 'test/env/aws/.env' });
 
 import { S3 } from '.';
-import AWS from 'aws-sdk';
+import { S3Client } from '@aws-sdk/client-s3';
 import { Interface } from 'readline';
 
 import { WriteStream } from './writeStream';
@@ -46,14 +46,14 @@ describe('Aws Storage', () => {
     });
 
     describe('specific method: getInstance', () => {
-        it('should be instance of AWS.S3', async () => {
-            await getInstance.shouldBeInstanceOf(storage, AWS.S3);
+        it('should be instance of S3Client', async () => {
+            await getInstance.shouldBeInstanceOf(storage, S3Client);
         });
     });
 
     describe('specific method: createInstance', () => {
-        it('value should be instance of AWS.S3', async () => {
-            await createInstance.shouldBeInstanceOf(storage, AWS.S3);
+        it('value should be instance of S3Client', async () => {
+            await createInstance.shouldBeInstanceOf(storage, S3Client);
         });
     });
 
@@ -66,7 +66,7 @@ describe('Aws Storage', () => {
         });
     });
 
-    describe('common method: sendContent', () => {
+    describe('specific method: sendContent', () => {
         it('upload file', async () => {
             await sendContent.uploadFile(storage);
         });
@@ -76,7 +76,7 @@ describe('Aws Storage', () => {
         });
     });
 
-    describe('common method: readContent', () => {
+    describe('specific method: readContent', () => {
         it('should match content', async () => {
             await readContent.shouldMatchContent(storage);
         });
@@ -86,7 +86,7 @@ describe('Aws Storage', () => {
         });
     });
 
-    describe('common method: sendStream', () => {
+    describe('specific method: sendStream', () => {
         it('should return instance of WriteStream', async () => {
             await sendStream.shouldReturnInstanceOfWriteStream(storage, WriteStream);
         });
@@ -100,7 +100,7 @@ describe('Aws Storage', () => {
         });
     });
 
-    describe('common method: readStream', () => {
+    describe('specific method: readStream', () => {
         it('should be instance of Interface', async () => {
             await readStream.shouldReturnInstanceOfInterface(storage, Interface);
         });
@@ -110,7 +110,7 @@ describe('Aws Storage', () => {
         });
     });
 
-    describe('common method: readDirectory', () => {
+    describe('specific method: readDirectory', () => {
         it('should have content', async () => {
             await readDirectory.shouldHaveContent(storage);
         });
@@ -152,7 +152,7 @@ describe('Aws Storage', () => {
         });
     });
 
-    describe('common method: getFileInfo', () => {
+    describe('specific method: getFileInfo', () => {
         it('should return file info', async () => {
             await getFileInfo.shouldReturnFileInfo(storage);
         });
@@ -170,7 +170,7 @@ describe('Aws Storage', () => {
         });
     });
 
-    describe('specific method: compareSize', () => {
+    describe('common method: compareSize', () => {
         it('should compare source with destination size', async () => {
             expect.assertions(1);
             const { mockFilePath, mockCopyFilePath } = getVariables(storage);
@@ -192,13 +192,13 @@ describe('Aws Storage', () => {
         });
     });
 
-    describe('common method: deleteFile', () => {
+    describe('specific method: deleteFile', () => {
         it('should do', async () => {
             await deleteFile.shouldDo(storage);
         });
     });
 
-    describe('common method: deleteDirectory', () => {
+    describe('specific method: deleteDirectory', () => {
         it('should delete recursively', async () => {
             await deleteDirectory.shouldDeleteRecursively(storage);
         });

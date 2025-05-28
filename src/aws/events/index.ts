@@ -8,7 +8,7 @@ import { EventsInterface } from '../../common/interfaces/events.interface';
 import { Events, eventsDefaultOptions } from '../../common/abstract/events';
 import { keyFields, libraries, providerConfig } from '../index';
 
-let AWS;
+// let AWS;
 
 export const sqsDefaultOptions = defaultsDeep(
     {
@@ -33,7 +33,6 @@ export class SQS extends Events implements EventsInterface {
     public defaultOptions: any = cloneDeep(sqsDefaultOptions);
     protected queueUrls: any = {};
     protected instance;
-    protected snsInstance;
     protected queueListeners = [];
     protected messagesReceived = [];
     protected messageSlots = 0;
@@ -41,18 +40,13 @@ export class SQS extends Events implements EventsInterface {
 
     async initialize(options: any = {}) {
         await super.initialize(options);
-        AWS = this.getLibrary('AWS');
         this.checkOptions();
 
         this.instance = await this.createInstance(this.options);
-        this.snsInstance = await this.createSNSInstance(this.options);
-
-        this.options.topicArn = await this.createSNSTopic(this.options.topicName);
         this.options.loadQueues && (await this.options.loadQueues(this));
         if (this.getOptions().deleteAllQueues) throw new Error('All queues deleted');
 
         this.listenAll();
-        // this._reconnecting = false;
     }
 
     setOptions(options?: any): void {
@@ -72,6 +66,24 @@ export class SQS extends Events implements EventsInterface {
             // this.options.SubscribeAttributes.MessageGroupId = this.options.topicName;
             this.options.SendMessageAttributes.MessageGroupId = prefix;
         }
+    }
+
+    async getInstance(options: any = {}) {
+        if (intersection(keys(options), keys(keyFields)).length > 0) {
+            const instance = await this.createInstance(options);
+            return instance;
+        }
+        return this.instance;
+    }
+
+    async createInstance(options: any = {}) {
+        const SQSClient = this.getLibrary('SQSClient');
+
+        const _options = this.mergeProviderOptions(options, keyFields);
+        const config = await providerConfig(_options);
+        const instance = new SQSClient(config);
+
+        return instance;
     }
 
     formatQueueName(name, options: any = {}) {
@@ -103,47 +115,7 @@ export class SQS extends Events implements EventsInterface {
         else this.listenAll();
     }
 
-    async getInstance(options: any = {}) {
-        if (intersection(keys(options), keys(keyFields)).length > 0) {
-            const instance = await this.createInstance(options);
-            await providerConfig(pick(this.providerOptions, ...keys(keyFields)));
-            return instance;
-        }
-        return this.instance;
-    }
-
-    async createInstance(options: any = {}) {
-        const keyOptions = pick(options, ...keys(keyFields));
-        const keyProviderOptions = pick(this.providerOptions, ...keys(keyFields));
-        const providerOptions = defaults(keyOptions, keyProviderOptions);
-
-        await providerConfig(providerOptions);
-        const instance = new AWS.SQS({});
-
-        return instance;
-    }
-
-    async getSNSInstance(options: any = {}) {
-        if (intersection(keys(options), keys(keyFields)).length > 0) {
-            const instance = await this.createSNSInstance(options);
-            await providerConfig(pick(this.providerOptions, ...keys(keyFields)));
-            return instance;
-        }
-        return this.snsInstance;
-    }
-
-    async createSNSInstance(options: any = {}) {
-        await providerConfig(defaults(pick(options, ...keys(keyFields)), pick(this.providerOptions, ...keys(keyFields))));
-
-        const instance = new AWS.SNS({});
-
-        return instance;
-    }
-
     checkOptions() {
-        if (!this.options.topicName) {
-            throw new Error('topic name not specified for events (SNS/SQS)');
-        }
         return true;
     }
 
@@ -159,20 +131,8 @@ export class SQS extends Events implements EventsInterface {
             this.queueUrls[name] = await this.createQueue(name);
             debug('loadQueue:queueUrl', name, this.queueUrls[name]);
 
-            await this.queueSubscribe(this.queueUrls[name]);
             this.queueListeners.push({ name, handler: _handler });
         }
-    }
-
-    buildListenerParams(_name) {
-        const params: any = {
-            ...omit(this.options.params),
-            QueueUrl: this.queueUrls[_name],
-        };
-
-        if (this.options.maxNumberOfMessages) params.MaxNumberOfMessages = +this.options.maxNumberOfMessages;
-
-        return params;
     }
 
     async listenAll() {
@@ -183,6 +143,17 @@ export class SQS extends Events implements EventsInterface {
             }
 
         this.processReceivedMessages();
+    }
+
+    buildListenerParams(_name) {
+        const params: any = {
+            ...this.options.params,
+            QueueUrl: this.queueUrls[_name],
+        };
+
+        if (this.options.maxNumberOfMessages) params.MaxNumberOfMessages = +this.options.maxNumberOfMessages;
+
+        return params;
     }
 
     async listen(_name, _handler) {
@@ -196,191 +167,131 @@ export class SQS extends Events implements EventsInterface {
         }
     }
 
-    _receiveMessages(_name, _handler, instance) {
-        return new Promise((resolve, reject) => {
-            const params = this.buildListenerParams(_name);
+    async _receiveMessages(_name, _handler, instance) {
+        const ReceiveMessageCommand = this.getLibrary('SQSReceiveMessageCommand');
+        const params = this.buildListenerParams(_name);
 
-            instance.receiveMessage(params, (error, data) => {
-                if (error) {
-                    log('loadQueue:receiveMessage', error.message);
-                    reject(error);
-                } else {
-                    if (data?.Messages?.length) {
-                        for (const message of data.Messages) {
-                            this.messagesReceived.push({
-                                name: _name,
-                                handler: _handler,
-                                options: { events: this },
-                                message,
-                            });
-                        }
-                    }
-                    resolve(true);
+        try {
+            const command = new ReceiveMessageCommand(params);
+            const data = await instance.send(command);
+
+            if (data.Messages?.length) {
+                for (const message of data.Messages) {
+                    this.messagesReceived.push({
+                        name: _name,
+                        handler: _handler,
+                        options: { events: this },
+                        message,
+                    });
                 }
-            });
-        });
+            }
+        } catch (error) {
+            log('loadQueue:receiveMessage', error.message);
+            throw error;
+        }
     }
 
-    _sendToQueue(_name, data, options: any = {}) {
-        const name = this.formatQueueName(_name, options);
-        return new Promise((resolve, reject) => {
-            this.getQueueUrl(name)
-                .then(async (queueUrl) => {
-                    const params = {
-                        MessageBody: typeof data === 'object' ? JSON.stringify(data) : data + '',
-                        QueueUrl: queueUrl,
-                        ...this.options.SendMessageAttributes,
-                    };
+    async _sendToQueue(_name, data, options: any = {}) {
+        const instance = await this.getInstance(options);
+        const SendMessageCommand = this.getLibrary('SQSSendMessageCommand');
 
-                    const sqs = await this.getInstance();
-                    sqs.sendMessage(params, (error, data) => {
-                        if (error) {
-                            debug('_sendToQueue:', 'Erro ao enviar mensagem para a fila:', error.message);
-                            reject(error);
-                        } else {
-                            debug('_sendToQueue:', 'Mensagem enviada com sucesso:', name, data.MessageId);
-                            resolve(true);
-                        }
-                    });
-                })
-                .catch((error) => {
-                    reject(error);
-                });
-        });
+        const name = this.formatQueueName(_name, options);
+        const queueUrl = await this.getQueueUrl(name);
+        const params = {
+            MessageBody: typeof data === 'object' ? JSON.stringify(data) : data + '',
+            QueueUrl: queueUrl,
+            ...this.options.SendMessageAttributes,
+        };
+        const command = new SendMessageCommand(params);
+
+        try {
+            const data = await instance.send(command);
+            debug('Mensagem enviada com sucesso:', name, data.MessageId);
+        } catch (error) {
+            debug('Erro ao enviar mensagem:', error.message);
+            throw error;
+        }
     }
 
     async ack(name, message, options) {
-        // Deleta a mensagem da fila
+        const sqsClient = await this.getInstance();
+        const DeleteMessageCommand = this.getLibrary('SQSDeleteMessageCommand');
+
         const deleteParams = {
             QueueUrl: this.queueUrls[name],
             ReceiptHandle: message.ReceiptHandle,
         };
 
-        const sqs = await this.getInstance();
-        sqs.deleteMessage(deleteParams, (error, data) => {
-            if (error) {
-                debug('ack:', error.message);
-            } else {
-                debug(`Mensagem ${message.MessageId} deletada da fila`);
-            }
-        });
+        const command = new DeleteMessageCommand(deleteParams);
+        await sqsClient.send(command);
+        debug('Mensagem excluída com sucesso:', message.MessageId);
     }
 
     async nack(name, message, options) {
-        // debug('Erro ao processar mensagem: ', err);
-        // Diminui o tempo de visibilidade da mensagem para que ela seja reprocessada
+        const instance = await this.getInstance();
+        const ChangeMessageVisibilityCommand = this.getLibrary('SQSChangeMessageVisibilityCommand');
+
         const changeParams = {
             QueueUrl: this.queueUrls[name],
             ReceiptHandle: message.ReceiptHandle,
-            VisibilityTimeout: 0,
+            VisibilityTimeout: 10,
         };
 
-        const sqs = await this.getInstance();
-        sqs.changeMessageVisibility(changeParams, (error, data) => {
-            // TODO: revisar
-            if (error) {
-                debug('Erro ao alterar visibilidade da mensagem: ', error.message);
-                if (this.options.throwError) throw error;
-            }
-            // else {
-            // debug('Visibilidade da mensagem alterada: ', message.MessageId);
-            // }
-        });
-    }
-
-    async createSNSTopic(name) {
-        const sns = await this.getSNSInstance();
-        return new Promise((resolve, reject) => {
-            this.findTopic(name)
-                .then((topicArn) => {
-                    if (topicArn) {
-                        // debug(`A fila ${name} já existe (${queueUrl})`);
-                        resolve(topicArn);
-                    } else {
-                        const Attributes: any = this.getOptions().TopicAttributes || {};
-
-                        sns.createTopic({ Name: name, Attributes }, (error, data) => {
-                            if (error) {
-                                log('Erro ao criar tópico: ', error.message);
-                                reject(error);
-                                // this.createTopicOnFail(name).then((topicArn) => resolve(topicArn));
-                            } else {
-                                // debug(`Tópico criado com sucesso: ${data.TopicArn}`);
-                                resolve(data.TopicArn);
-                            }
-                        });
-                    }
-                })
-                .catch((error) => {
-                    log('createSNSTopic:', error);
-                    reject(error);
-                });
-        });
-    }
-
-    async createTopicOnFail(name) {
-        await sleep(this.options.retryInterval);
-        return await this.createSNSTopic(name);
-    }
-
-    async findTopic(name) {
-        const sns = await this.getSNSInstance();
-        return new Promise((resolve, reject) => {
-            sns.listTopics({}, (error, data) => {
-                if (error) {
-                    debug('Erro ao listar tópicos: ', error.message);
-                    // reject(error);
-                    reject(error);
-                } else {
-                    let topicArn = '';
-                    data.Topics.some((topic) => {
-                        const found = topic.TopicArn.includes(name);
-                        if (found) topicArn = topic.TopicArn;
-                        return found;
-                    });
-                    resolve(topicArn);
-                }
-            });
-        });
+        try {
+            const command = new ChangeMessageVisibilityCommand(changeParams);
+            await instance.send(command);
+        } catch (error) {
+            debug('Erro ao alterar visibilidade da mensagem:', error.message);
+            if (this.options.throwError) throw error;
+        }
     }
 
     async _createQueue(name) {
-        const sqs = await this.getInstance();
-        return new Promise((resolve, reject) => {
-            const Attributes = this.getOptions().QueueAttributes || {};
+        const instance = await this.getInstance();
+        const CreateQueueCommand = this.getLibrary('SQSCreateQueueCommand');
+        const Attributes = this.getOptions().QueueAttributes || {};
+        /*
+        {
+            // Aqui você pode definir atributos opcionais da fila, como:
+            // DelaySeconds: "0", // Atraso em segundos para mensagens
+            // MaxMessageSize: "262144", // Tamanho máximo da mensagem em bytes
+            // MessageRetentionPeriod: "345600", // Tempo de retenção em segundos
+            // VisibilityTimeout: "30", // Tempo de visibilidade em segundos
+            // ReceiveMessageWaitTimeSeconds: "0" // Tempo de espera para receber mensagens
+        }
+        */
 
-            // Se a fila não existe, cria uma nova fila
-            sqs.createQueue({ QueueName: name, Attributes }, (error, data) => {
-                if (error) {
-                    log('createQueue:', error.message);
-                    reject(error);
-                    // this.createQueueOnFail(name).then((queueUrl) => resolve(queueUrl));
-                } else {
-                    const queueUrl = data.QueueUrl;
-                    debug(`A fila ${name} foi criada com sucesso (${queueUrl})`);
-                    resolve(queueUrl);
-                }
-            });
-        });
+        const params = {
+            QueueName: name,
+            Attributes,
+        };
+
+        const command = new CreateQueueCommand(params);
+
+        try {
+            const data = await instance.send(command);
+            debug(`A fila ${name} foi criada com sucesso (${data.QueueUrl})`);
+        } catch (error) {
+            log('createQueue:', error.message);
+            throw error;
+        }
     }
 
     async deleteQueue(name) {
-        const sqs = await this.getInstance();
+        const instante = await this.getInstance();
+        const DeleteQueueCommand = this.getLibrary('SQSDeleteQueueCommand');
+        const queueUrl = await this.findQueueUrl(name);
+
+        const params = {
+            QueueUrl: queueUrl,
+        };
+
         try {
-            const queueUrl = await this.findQueueUrl(name);
-            return new Promise((resolve, reject) => {
-                sqs.deleteQueue({ QueueUrl: queueUrl }, (error, data) => {
-                    if (error) {
-                        log(`falha ao excluir a fila ${name}: ${error.message}`);
-                        reject(error);
-                    } else {
-                        log(`A fila ${name} foi deletada com sucesso. data? ${JSON.stringify(data)}. error? ${JSON.stringify(error)}`);
-                        resolve(true);
-                    }
-                });
-            });
+            const data = await instante.send(new DeleteQueueCommand(params));
+            log(`A fila ${name} foi deletada com sucesso. data? ${JSON.stringify(data)}.`);
         } catch (error) {
-            log(`A fila ${name} nao pode ser excluida: ${error.message}`);
+            log(`falha ao excluir a fila ${name}: ${error.message}`);
+            throw error;
         }
     }
 
@@ -390,22 +301,6 @@ export class SQS extends Events implements EventsInterface {
         } catch (error) {
             return await this._createQueue(name);
         }
-        // return new Promise((resolve, reject) => {
-        //     // Verifica se a fila já existe
-        //     this.findQueueUrl(name)
-        //         .then((queueUrl) => {
-        //             if (queueUrl) {
-        //                 //
-        //                 debug(`A fila ${name} já existe (${queueUrl})`);
-        //                 resolve(queueUrl);
-        //             } else {
-        //                 createQueue(resolve, reject);
-        //             }
-        //         })
-        //         .catch(() => {
-        //             createQueue(resolve, reject);
-        //         });
-        // });
     }
 
     async createQueueOnFail(name) {
@@ -421,24 +316,20 @@ export class SQS extends Events implements EventsInterface {
     }
 
     async findQueueUrl(name) {
-        const sqs = await this.getInstance();
-        return new Promise((resolve, reject) => {
-            // Verifica se a fila já existe
-            sqs.getQueueUrl({ QueueName: name }, (error, data) => {
-                if (error) {
-                    debug('findQueueUrl:', error.message);
-                    reject(error);
-                } else {
-                    // Se a fila já existe, utiliza a URL da fila existente
-                    if (data.QueueUrl) {
-                        resolve(data.QueueUrl);
-                    } else {
-                        debug('findQueueUrl:', `Url da fila "${name}" não encontrada`, data);
-                        reject(new Error(`Url da fila "${name}" não encontrada`));
-                    }
-                }
-            });
-        });
+        const sqsClient = await this.getInstance();
+        const GetQueueUrlCommand = this.getLibrary('SQSGetQueueUrlCommand');
+        const params = {
+            QueueName: name,
+        };
+
+        try {
+            const data = await sqsClient.send(new GetQueueUrlCommand(params));
+            // console.log(`URL da fila "${name}":`, data.QueueUrl);
+            return data.QueueUrl;
+        } catch (error) {
+            debug(`Erro ao obter a URL da fila "${name}"`, error.message);
+            throw error;
+        }
     }
 
     queueUrlToARN(_queueUrl) {
@@ -447,55 +338,5 @@ export class SQS extends Events implements EventsInterface {
             return arn;
         }
         return _queueUrl;
-    }
-
-    async queueSubscribe(_queueUrl) {
-        const sns = await this.getSNSInstance();
-        return new Promise((resolve, reject) => {
-            const queueArn = this.queueUrlToARN(_queueUrl);
-
-            sns.subscribe(
-                {
-                    Protocol: 'sqs',
-                    TopicArn: this.options.topicArn,
-                    Endpoint: queueArn,
-                },
-                (error, data) => {
-                    if (error) {
-                        debug('queueSubscribe:', error.message);
-                        reject(error);
-                    } else {
-                        debug(`Fila inscrita no tópico ${this.options.topicArn} com subscriptionArn ${data.SubscriptionArn}`);
-
-                        if (this.options.fifo) {
-                            this.queueSubscribeSetMessageGroupId(data.SubscriptionArn)
-                                .then(() => resolve(true))
-                                .catch((error) => reject(error));
-                        } else {
-                            resolve(true);
-                        }
-                    }
-                },
-            );
-        });
-    }
-
-    async queueSubscribeSetMessageGroupId(subscriptionArn) {
-        const sns = await this.getSNSInstance();
-        return new Promise((resolve, reject) => {
-            const setSubscriptionAttributesParams = {
-                SubscriptionArn: subscriptionArn,
-                AttributeName: 'SqsMessageGroupId',
-                AttributeValue: 'abc',
-            };
-            sns.setSubscriptionAttributes(setSubscriptionAttributesParams, (err, data) => {
-                if (err) {
-                    console.error('Erro ao definir o atributo SqsMessageGroupId:', err);
-                    reject(err);
-                    return;
-                }
-                resolve(true);
-            });
-        });
     }
 }

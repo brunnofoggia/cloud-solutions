@@ -1,5 +1,5 @@
+import AwsDeprecated from '../awsd/index';
 import Aws from '../aws/index';
-import Awsn from '../awsn/index';
 import Gcp from '../gcp/index';
 import Local from '../local/index';
 import { RabbitMQ } from '../thirdparty/rabbitmq/index';
@@ -14,7 +14,7 @@ adapters[SolutionEnum.SECRETS] = {};
 adapters[SolutionEnum.STORAGE] = {};
 adapters[SolutionEnum.EVENTS] = {};
 
-// AWS
+// AWS V3
 adapters[ProviderEnum.AWS] = {};
 adapters[ProviderEnum.AWS][SolutionEnum.CLOUD_PROVIDER] = Aws.providerConfig;
 adapters[ProviderEnum.AWS][SolutionEnum.SECRETS] = Aws.SecretsAdapter;
@@ -27,20 +27,6 @@ adapters[SolutionEnum.STORAGE][ProviderEnum.AWS] = Aws.StorageAdapter;
 adapters[SolutionEnum.STORAGE][Aws.SolutionsEnum.STORAGE] = Aws.StorageAdapter;
 adapters[SolutionEnum.EVENTS][ProviderEnum.AWS] = Aws.EventsAdapter;
 adapters[SolutionEnum.EVENTS][Aws.SolutionsEnum.EVENTS] = Aws.EventsAdapter;
-
-// AWS
-adapters[ProviderEnum.AWSN] = {};
-adapters[ProviderEnum.AWSN][SolutionEnum.CLOUD_PROVIDER] = Awsn.providerConfig;
-adapters[ProviderEnum.AWSN][SolutionEnum.SECRETS] = Awsn.SecretsAdapter;
-adapters[ProviderEnum.AWSN][SolutionEnum.STORAGE] = Awsn.StorageAdapter;
-adapters[ProviderEnum.AWSN][SolutionEnum.EVENTS] = Awsn.EventsAdapter;
-adapters[SolutionEnum.CLOUD_PROVIDER][ProviderEnum.AWSN] = Awsn.providerConfig;
-adapters[SolutionEnum.SECRETS][ProviderEnum.AWSN] = Awsn.SecretsAdapter;
-adapters[SolutionEnum.SECRETS][Awsn.SolutionsEnum.SECRETS] = Awsn.SecretsAdapter;
-adapters[SolutionEnum.STORAGE][ProviderEnum.AWSN] = Awsn.StorageAdapter;
-adapters[SolutionEnum.STORAGE][Awsn.SolutionsEnum.STORAGE] = Awsn.StorageAdapter;
-adapters[SolutionEnum.EVENTS][ProviderEnum.AWSN] = Awsn.EventsAdapter;
-adapters[SolutionEnum.EVENTS][Awsn.SolutionsEnum.EVENTS] = Awsn.EventsAdapter;
 
 // GCP
 adapters[ProviderEnum.GCP] = {};
@@ -55,6 +41,20 @@ adapters[SolutionEnum.STORAGE][Gcp.SolutionsEnum.STORAGE] = Gcp.StorageAdapter;
 // adapters[SolutionEnum.EVENTS][ProviderEnum.GCP] = Gcp.EventsAdapter;
 // adapters[SolutionEnum.EVENTS][Gcp.SolutionsEnum.EVENTS] = Gcp.EventsAdapter;
 // adapters[ProviderEnum.GCP][SolutionEnum.EVENTS] = Gcp.EventsAdapter;
+
+// AWS DEPRECATED
+adapters[ProviderEnum.AWSDEPRECATED] = {};
+adapters[ProviderEnum.AWSDEPRECATED][SolutionEnum.CLOUD_PROVIDER] = AwsDeprecated.providerConfig;
+adapters[ProviderEnum.AWSDEPRECATED][SolutionEnum.SECRETS] = AwsDeprecated.SecretsAdapter;
+adapters[ProviderEnum.AWSDEPRECATED][SolutionEnum.STORAGE] = AwsDeprecated.StorageAdapter;
+adapters[ProviderEnum.AWSDEPRECATED][SolutionEnum.EVENTS] = AwsDeprecated.EventsAdapter;
+adapters[SolutionEnum.CLOUD_PROVIDER][ProviderEnum.AWSDEPRECATED] = AwsDeprecated.providerConfig;
+adapters[SolutionEnum.SECRETS][ProviderEnum.AWSDEPRECATED] = AwsDeprecated.SecretsAdapter;
+adapters[SolutionEnum.SECRETS][AwsDeprecated.SolutionsEnum.SECRETS] = AwsDeprecated.SecretsAdapter;
+adapters[SolutionEnum.STORAGE][ProviderEnum.AWSDEPRECATED] = AwsDeprecated.StorageAdapter;
+adapters[SolutionEnum.STORAGE][AwsDeprecated.SolutionsEnum.STORAGE] = AwsDeprecated.StorageAdapter;
+adapters[SolutionEnum.EVENTS][ProviderEnum.AWSDEPRECATED] = AwsDeprecated.EventsAdapter;
+adapters[SolutionEnum.EVENTS][AwsDeprecated.SolutionsEnum.EVENTS] = AwsDeprecated.EventsAdapter;
 
 // LOCAL
 adapters[ProviderEnum.LOCAL] = {};
