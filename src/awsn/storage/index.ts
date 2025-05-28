@@ -9,7 +9,7 @@ import { Readable } from 'stream';
 import { StorageOutputEnum } from '../../common/types/storageOutput.enum';
 import { FileInfoInterface, ReadStreamOptions, StorageInterface } from '../../common/interfaces/storage.interface';
 import { Storage as AStorage } from '../../common/abstract/storage';
-import { keyFields, libraries } from '../index';
+import { keyFields, libraries, providerConfig } from '../index';
 import { WriteStream } from './writeStream';
 import { copyFileOptionsDefault, CopyFileOptionsInterface } from './interface';
 import { streamToString } from '../../common/utils/streamToString';
@@ -33,18 +33,11 @@ export class S3 extends AStorage implements StorageInterface {
     }
 
     async createInstance(options: any = {}) {
-        const _options = this.mergeProviderOptions(options, keyFields);
         const S3Client = this.getLibrary('S3Client');
+        const _options = this.mergeProviderOptions(options, keyFields);
+        const config = await providerConfig(_options);
 
-        const providerOptions = {
-            region: _options.region,
-            credentials: {
-                accessKeyId: _options.user,
-                secretAccessKey: _options.pass,
-            },
-        };
-
-        return new S3Client(providerOptions);
+        return new S3Client(config);
     }
 
     async readBinary(path, options: any = {}) {
