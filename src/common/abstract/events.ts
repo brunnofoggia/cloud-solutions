@@ -54,13 +54,13 @@ export abstract class Events extends Solution {
 
     async receiveMessage(name, handler, message, options) {
         debug(`@${process.pid} Executing Queue ${name}`);
-        // message was successfully received. Rather or not it was processed successfully is another story.
-        await this.ack(name, message, options);
+        // // message was successfully received. Rather or not it was processed successfully is another story.
+        // await this.ack(name, message, options);
 
         const body = this.formatMessageBody(message);
         if (body === false) {
             debug(`@${process.pid} Aborting Queue`);
-            // return await this.ack(name, message, options);
+            await this.ack(name, message, options);
             return;
         }
 
@@ -69,18 +69,18 @@ export abstract class Events extends Solution {
                 events: options.events,
                 name,
             });
-            // if (result !== false) return await this.ack(name, message, options);
+            if (result !== false) return await this.ack(name, message, options);
         } catch (error) {
-            // await this.nack(name, message, options);
             debug(`@${process.pid} Error on Queue:`);
             debug(`Code: ${error.code}; Status: ${error.status}; Message: ${error.message}`);
+            await this.nack(name, message, options);
             if (options.events.getOptions().throwError) {
                 debug(`Trace:`);
                 throw error;
             }
             return;
         }
-        // await this.nack(name, message, options);
+        await this.nack(name, message, options);
     }
 
     getPrefix(options: any = {}) {

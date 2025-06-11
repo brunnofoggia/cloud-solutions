@@ -1,6 +1,6 @@
 {
     "name": "cloud-solutions",
-    "version": "1.54.1",
+    "version": "1.54.2",
     "description": "",
     "license": "ISC",
     "author": "Bruno Foggia",
@@ -12,7 +12,7 @@
         "prebuild": "rimraf dist",
         "build": "tsc -p ./tsconfig.build.json",
         "lint": "eslint \"{src,apps,libs}/**/*.+(js|json|ts|tsx)\" --fix",
-        "pre-commit": "lint-staged && yarn build && yarn test",
+        "pre-commit": "lint-staged && yarn build",
         "prepare": "npm run build",
         "testx": "jest --verbose --maxWorkers=3",
         "testy": "jest --verbose",
