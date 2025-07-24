@@ -1,4 +1,4 @@
-import { defaultsDeep, keys, omit } from 'lodash';
+import { defaultsDeep, isArray, keys, omit } from 'lodash';
 import { Solution } from './solution';
 import { CompareSizeOptionsInterface, StorageInterface } from '../interfaces/storage.interface';
 
@@ -52,7 +52,8 @@ export abstract class Storage extends Solution {
     }
 
     filterOptions(options = {}, keyFieldsToOmit) {
-        return omit(options, 'params', ...keys(keyFieldsToOmit));
+        const omitFields = isArray(keyFieldsToOmit) ? keyFieldsToOmit : keys(keyFieldsToOmit);
+        return omit(options, 'params', ...omitFields);
     }
 
     async getDirectoryContentLength(directoryPath = '', options: any = {}) {

@@ -151,9 +151,11 @@ sendStream.checkFinalContent = async (storage, mockFileStreamPath, finalContent)
 
 const readStream: any = {};
 readStream.shouldReturnInstanceOfInterface = async (storage, reference) => {
-    expect.assertions(1);
+    expect.assertions(2);
     const { mockFileStreamShortPath } = getVariables(storage);
     const stream = await storage.readStream(mockFileStreamShortPath);
+    expect(stream).toBeInstanceOf(reference);
+    const stream2 = await storage.readStream(mockFileStreamShortPath, { getRawStream: true });
     expect(stream).toBeInstanceOf(reference);
 };
 readStream.shouldMatchContent = async (storage) => {

@@ -1,6 +1,6 @@
 {
     "name": "cloud-solutions",
-    "version": "2.2.3",
+    "version": "2.2.6",
     "description": "",
     "license": "ISC",
     "author": "Bruno Foggia",
@@ -34,7 +34,7 @@
         "@typescript-eslint/eslint-plugin": "^7.9.0",
         "@typescript-eslint/parser": "^7.9.0",
         "amqplib": "^0.10.4",
-        "aws-sdk": "^2.1622.0",
+        "aws-sdk": "^2.1692.0",
         "commitlint": "^19.3.0",
         "cross-env": "^7.0.3",
         "cz-conventional-changelog": "^3.3.0",
