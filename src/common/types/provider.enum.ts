@@ -1,5 +1,5 @@
 export enum ProviderEnum {
-    AWSDEPRECATED = 'awsd',
+    AWSV2 = 'awsv2',
     AWS = 'aws',
     GCP = 'gcp',
     AZURE = 'azure',
