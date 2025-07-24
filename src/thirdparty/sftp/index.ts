@@ -168,7 +168,7 @@ export class Sftp extends Storage implements StorageInterface {
         const memoryStream = new BufferWritable();
         await instance.get(path, memoryStream);
 
-        const content = memoryStream.getData(options.encode);
+        const content = memoryStream.getData(this.defineCharset(options));
 
         return content;
     }
@@ -180,11 +180,13 @@ export class Sftp extends Storage implements StorageInterface {
             const _path = this.buildPath(filePath, options);
             const exists = await this._checkPathExists(_path, { instance });
             if (exists) {
-                const data = await instance.createReadStream(_path, pick(options, 'encoding', 'start'));
-                if (options.getRawStream) return data;
+                options.encoding = this.defineCharset(options);
+                const rawStream = await instance.createReadStream(_path, pick(options, 'encoding', 'start'));
+
+                if (options.getRawStream) return rawStream;
 
                 const rl = await createInterface({
-                    input: data,
+                    input: rawStream,
                     crlfDelay: Infinity,
                 });
                 return rl;

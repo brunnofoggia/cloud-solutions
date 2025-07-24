@@ -23,6 +23,14 @@ export abstract class Storage extends Solution {
         return true;
     }
 
+    shouldSetEncoding(options: any = {}) {
+        return options.charset !== false && options.charset !== '';
+    }
+
+    defineCharset(options: any = {}) {
+        return options.charset === false ? '' : options.charset || 'utf-8';
+    }
+
     async sendContent(path, content, params: any = {}, retry = 3) {
         try {
             await this._sendContent(path, content, params);

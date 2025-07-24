@@ -47,7 +47,7 @@ export class S3 extends AStorage implements StorageInterface {
     }
 
     async readContent(path, options: any = {}) {
-        !options.charset && (options.charset = 'utf-8');
+        options.charset = this.defineCharset(options);
         return this.readBinary(path, options);
     }
 
@@ -64,6 +64,10 @@ export class S3 extends AStorage implements StorageInterface {
 
         const response = await storage.send(command);
         const rawStream = response?.Body;
+
+        if (this.shouldSetEncoding(options) && rawStream.setEncoding) {
+            rawStream.setEncoding(this.defineCharset(options));
+        }
 
         if (!rawStream) {
             throw new Error('Arquivo não encontrado ou vazio');

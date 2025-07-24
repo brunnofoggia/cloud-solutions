@@ -51,7 +51,7 @@ export class S3 extends AStorage implements StorageInterface {
     }
 
     async readContent(path, options: any = {}) {
-        return (await this.readBinary(path, options)).toString(options.charset || 'utf-8');
+        return (await this.readBinary(path, options)).toString(this.defineCharset(options));
     }
 
     async readStream(path, options: Partial<ReadStreamOptions> = {}): Promise<ReadLineInterface | NodeJS.ReadableStream> {
@@ -63,11 +63,16 @@ export class S3 extends AStorage implements StorageInterface {
             Key: path,
         };
 
-        const data = await storage.getObject(storageParams).createReadStream();
-        if (options.getRawStream) return data;
+        const rawStream = await storage.getObject(storageParams).createReadStream();
+
+        if (this.shouldSetEncoding(options) && rawStream.setEncoding) {
+            rawStream.setEncoding(this.defineCharset(options));
+        }
+
+        if (options.getRawStream) return rawStream;
 
         const rl = createInterface({
-            input: data,
+            input: rawStream,
             crlfDelay: Infinity,
         });
 
