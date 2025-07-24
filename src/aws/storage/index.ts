@@ -190,15 +190,27 @@ export class S3 extends AStorage implements StorageInterface {
         this.isInitialized();
         const s3Client = await this.getInstance(_options);
         const ListObjectsV2Command = this.getLibrary('S3ListObjectsV2Command');
-
         const options: any = this.mergeStorageOptions(_options, keyFields);
+
         directoryPath && (options.Prefix = directoryPath);
 
-        const command = new ListObjectsV2Command(options);
-        const objects = await s3Client.send(command);
+        let ContinuationToken: string | undefined = undefined;
+        const contentList = [];
+        do {
+            const command = new ListObjectsV2Command({
+                ...options,
+                ContinuationToken,
+            });
 
-        const contentList = map(objects?.Contents || [], (item) => item?.Key);
-        return this.filterFilesOnly(contentList);
+            const objects = await s3Client.send(command);
+            const _contentList = map(objects?.Contents || [], (item) => item?.Key);
+            contentList.push(...this.filterFilesOnly(_contentList));
+
+            // pagination to catch all objects in the directory
+            ContinuationToken = objects.IsTruncated ? objects.NextContinuationToken : undefined;
+        } while (ContinuationToken);
+
+        return contentList;
     }
 
     async _getFileInfo(params = {}, storage): Promise<any> {
