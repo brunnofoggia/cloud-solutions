@@ -1,4 +1,4 @@
-import AwsDeprecated from '../awsd/index';
+import AwsDeprecated from '../awsv2/index';
 import Aws from '../aws/index';
 import Gcp from '../gcp/index';
 import Local from '../local/index';
