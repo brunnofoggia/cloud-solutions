@@ -1,6 +1,6 @@
 {
     "name": "cloud-solutions",
-    "version": "2.2.1",
+    "version": "2.2.2",
     "description": "",
     "license": "ISC",
     "author": "Bruno Foggia",
@@ -20,7 +20,7 @@
         "test:clear": "npx jest --clearCache"
     },
     "devDependencies": {
-        "@aws-sdk/client-s3": "^3.658.1",
+        "@aws-sdk/client-s3": "^3.521.0",
         "@aws-sdk/client-sqs": "^3.817.0",
         "@aws-sdk/client-ssm": "^3.817.0",
         "@aws-sdk/lib-storage": "^3.782.0",
