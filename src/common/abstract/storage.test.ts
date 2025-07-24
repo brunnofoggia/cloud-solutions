@@ -272,11 +272,13 @@ deleteDirectory.shouldDeleteRecursively = async (storage, testForSftp = false) =
     // expect.assertions(testForSftp ? 2 : 1);
     const { mockDir } = getVariables(storage);
     const _path = mockDir + '/';
-    const contentListBefore = await storage.readDirectory(mockDir);
+    // console.log('>>>>>>>>>>>>>>>. deleteDirectory', _path);
+
+    // const contentListBefore = await storage.readDirectory(mockDir);
     await storage.deleteDirectory(_path);
     const hasContent = await storage.checkPathExists(mockDir);
-    const contentListAfter = await storage.readDirectory(mockDir);
-    // console.log('>>>>>>>>>>>>>>>. contentLength', _path, contentListBefore, contentListAfter, hasContent);
+    // const contentListAfter = await storage.readDirectory(mockDir);
+    // console.log('>>>>>>>>>>>>>>>. contentLength', _path, 'before', contentListBefore, 'after', contentListAfter, hasContent);
 
     // XXX: temporary fix for sftp available
     // if (testForSftp) {

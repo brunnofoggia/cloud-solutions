@@ -1,6 +1,6 @@
 {
     "name": "cloud-solutions",
-    "version": "1.54.3",
+    "version": "2.2.0",
     "description": "",
     "license": "ISC",
     "author": "Bruno Foggia",
@@ -16,11 +16,15 @@
         "prepare": "npm run build",
         "testx": "jest --verbose --maxWorkers=3",
         "testy": "jest --verbose",
-        "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
+        "test": "NODE_OPTIONS=--experimental-vm-modules npx --trace-deprecation jest",
         "test:clear": "npx jest --clearCache"
     },
     "devDependencies": {
         "@aws-sdk/client-s3": "^3.658.1",
+        "@aws-sdk/client-sqs": "^3.817.0",
+        "@aws-sdk/client-ssm": "^3.817.0",
+        "@aws-sdk/lib-storage": "^3.782.0",
+        "@aws-sdk/util-stream": "^3.370.0",
         "@commitlint/config-conventional": "^19.2.2",
         "@google-cloud/secret-manager": "^5.5.0",
         "@google-cloud/storage": "^7.11.0",

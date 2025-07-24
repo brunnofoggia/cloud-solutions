@@ -13,7 +13,7 @@ export class BufferWritable extends Writable {
         callback();
     }
 
-    getData(encode: BufferEncoding) {
-        return Buffer.concat(this.data).toString(encode || 'utf-8');
+    getData(charset: BufferEncoding) {
+        return Buffer.concat(this.data).toString(charset || 'utf-8');
     }
 }
