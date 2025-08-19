@@ -10,6 +10,7 @@ import { WriteStream as _WriteStream } from '../../common/abstract/writeStream';
 export class WriteStream extends _WriteStream implements WriteStreamInterface {
     protected upload: any;
     protected filePath: string;
+    streamEnded = false;
 
     constructor(protected _stream: Transform, options: any = {}) {
         super();
@@ -22,6 +23,9 @@ export class WriteStream extends _WriteStream implements WriteStreamInterface {
     }
 
     async end() {
+        if (this.streamEnded) return;
+
+        this.streamEnded = true;
         const promise = this.upload.done();
         this._stream.end();
         await promise;
