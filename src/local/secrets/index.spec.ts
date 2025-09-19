@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-dotenv.config({ path: 'test/env/local/.env' });
+dotenv.config({ path: 'test/env/local/.env', quiet: true });
 import { Env } from './index';
 import { mockFormattedPath, mockPath, mockSecret, mockUndefinedPath } from '@test/mocks/local/secrets.mock';
 

@@ -1,12 +1,13 @@
-import { ParameterStore } from './secrets/index';
-import { S3 } from './storage/index';
-import { SQS } from './events/index';
-import { SolutionsEnum } from './solutions';
+import { AwsV2ParameterStore } from './secrets/index';
+import { AwsV2S3 } from './storage/index';
+import { AwsV2Sqs } from './events/index';
+import { SolutionsEnum } from './solutions.interface';
 import { Solution } from '../common/abstract/solution';
+import { SolutionEnum } from '../common/types/solution.enum';
 
-export const StorageAdapter = S3;
-export const SecretsAdapter = ParameterStore;
-export const EventsAdapter = SQS;
+export const StorageAdapter = AwsV2S3;
+export const SecretsAdapter = AwsV2ParameterStore;
+export const EventsAdapter = AwsV2Sqs;
 
 // export const keyFields = ['accessKeyId', 'secretAccessKey', 'region'];
 export const keyFields = { user: 'accessKeyId', pass: 'secretAccessKey', region: 'region' };
@@ -44,4 +45,11 @@ export const libraries = {
     AWS: 'aws-sdk',
 };
 
+const Adapters: any = {};
+Adapters[SolutionEnum.CLOUD_PROVIDER] = providerConfig;
+Adapters[SolutionEnum.SECRETS] = SecretsAdapter;
+Adapters[SolutionEnum.STORAGE] = StorageAdapter;
+Adapters[SolutionEnum.EVENTS] = EventsAdapter;
+
+export { SolutionsEnum, Adapters };
 export default { StorageAdapter, SecretsAdapter, EventsAdapter, SolutionsEnum, providerConfig, libraries };

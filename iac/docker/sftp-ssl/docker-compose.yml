@@ -1,0 +1,23 @@
+services:
+    sftp:
+        image: emberstack/sftp:latest
+        container_name: sftp-ssl-server
+        ports:
+            - '2223:22'
+        volumes:
+            - ./../../../test/env/thirdparty/ssl-sftp/emberstack.json:/app/config/sftp.json:ro
+            - ./../../../tmp/sftp-ssl-emberstack/data/demo:/home/demo/sftp
+            - ./../../../tmp/sftp-ssl-emberstack/data/keysonly:/home/keysonly/sftp
+        command: >
+            sh -c "
+              # injeta linhas no sshd_config
+              echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config &&
+              echo 'PubkeyAuthentication yes' >> /etc/ssh/sshd_config &&
+              echo 'AuthenticationMethods publickey,password' >> /etc/ssh/sshd_config &&
+              # inicia o servidor SFTP normalmente
+              /entrypoint"
+        healthcheck:
+            test: ['CMD-SHELL', 'pgrep -x sshd >/dev/null || exit 1']
+            interval: 10s
+            timeout: 5s
+            retries: 5

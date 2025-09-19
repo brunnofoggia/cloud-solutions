@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-dotenv.config({ path: 'test/env/aws/.env' });
+dotenv.config({ path: 'test/env/aws/.env', quiet: true });
 
 import { S3 } from '.';
 import { S3Client } from '@aws-sdk/client-s3';

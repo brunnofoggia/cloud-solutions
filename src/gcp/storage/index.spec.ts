@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-dotenv.config({ path: 'test/env/gcp/.env' });
+dotenv.config({ path: 'test/env/gcp/.env', quiet: true });
 import { Storage as GStorage } from '@google-cloud/storage';
 import { Storage } from '.';
 import { Interface } from 'readline';

@@ -1,78 +1,71 @@
-import AwsV2 from '../awsv2/index';
-import Aws from '../aws/index';
-import Gcp from '../gcp/index';
-import Local from '../local/index';
-import { RabbitMQ } from '../thirdparty/rabbitmq/index';
-import { Sftp } from '../thirdparty/sftp';
 import { SolutionEnum } from './types/solution.enum';
 import { ProviderEnum } from './types/provider.enum';
-import { Ftp } from '../thirdparty/ftp';
+
+import { Adapters as AwsV2Adapters, SolutionsEnum as AwsV2SolutionsEnum } from '../awsv2/index';
+import { Adapters as AwsAdapters, SolutionsEnum as AwsSolutionsEnum } from '../aws/index';
+import { Adapters as GcpAdapters, SolutionsEnum as GcpSolutionsEnum } from '../gcp/index';
+import { Adapters as LocalAdapters, SolutionsEnum as LocalSolutionsEnum } from '../local/index';
+import { Adapters as ThirdAdapters, SolutionsEnum as ThirdSolutionsEnum } from '../thirdparty/index';
 
 const adapters: any = {};
+// group of solutions by type
 adapters[SolutionEnum.CLOUD_PROVIDER] = {};
 adapters[SolutionEnum.SECRETS] = {};
 adapters[SolutionEnum.STORAGE] = {};
 adapters[SolutionEnum.EVENTS] = {};
 
 // AWS V3
-adapters[ProviderEnum.AWS] = {};
-adapters[ProviderEnum.AWS][SolutionEnum.CLOUD_PROVIDER] = Aws.providerConfig;
-adapters[ProviderEnum.AWS][SolutionEnum.SECRETS] = Aws.SecretsAdapter;
-adapters[ProviderEnum.AWS][SolutionEnum.STORAGE] = Aws.StorageAdapter;
-adapters[ProviderEnum.AWS][SolutionEnum.EVENTS] = Aws.EventsAdapter;
-adapters[SolutionEnum.CLOUD_PROVIDER][ProviderEnum.AWS] = Aws.providerConfig;
-adapters[SolutionEnum.SECRETS][ProviderEnum.AWS] = Aws.SecretsAdapter;
-adapters[SolutionEnum.SECRETS][Aws.SolutionsEnum.SECRETS] = Aws.SecretsAdapter;
-adapters[SolutionEnum.STORAGE][ProviderEnum.AWS] = Aws.StorageAdapter;
-adapters[SolutionEnum.STORAGE][Aws.SolutionsEnum.STORAGE] = Aws.StorageAdapter;
-adapters[SolutionEnum.EVENTS][ProviderEnum.AWS] = Aws.EventsAdapter;
-adapters[SolutionEnum.EVENTS][Aws.SolutionsEnum.EVENTS] = Aws.EventsAdapter;
+adapters[ProviderEnum.AWS] = AwsAdapters;
+// setup from cloud alias
+adapters[SolutionEnum.CLOUD_PROVIDER][ProviderEnum.AWS] = AwsAdapters[SolutionEnum.CLOUD_PROVIDER];
+adapters[SolutionEnum.SECRETS][ProviderEnum.AWS] = AwsAdapters[SolutionEnum.SECRETS];
+adapters[SolutionEnum.STORAGE][ProviderEnum.AWS] = AwsAdapters[SolutionEnum.STORAGE];
+adapters[SolutionEnum.EVENTS][ProviderEnum.AWS] = AwsAdapters[SolutionEnum.EVENTS];
+// setup from solution alias
+adapters[SolutionEnum.SECRETS][AwsSolutionsEnum.SECRETS] = AwsAdapters[SolutionEnum.SECRETS];
+adapters[SolutionEnum.STORAGE][AwsSolutionsEnum.STORAGE] = AwsAdapters[SolutionEnum.STORAGE];
+adapters[SolutionEnum.EVENTS][AwsSolutionsEnum.EVENTS] = AwsAdapters[SolutionEnum.EVENTS];
 
 // GCP
-adapters[ProviderEnum.GCP] = {};
-adapters[ProviderEnum.GCP][SolutionEnum.CLOUD_PROVIDER] = Gcp.providerConfig;
-adapters[ProviderEnum.GCP][SolutionEnum.SECRETS] = Gcp.SecretsAdapter;
-adapters[ProviderEnum.GCP][SolutionEnum.STORAGE] = Gcp.StorageAdapter;
-adapters[SolutionEnum.CLOUD_PROVIDER][ProviderEnum.GCP] = Gcp.providerConfig;
-adapters[SolutionEnum.SECRETS][ProviderEnum.GCP] = Gcp.SecretsAdapter;
-adapters[SolutionEnum.SECRETS][Gcp.SolutionsEnum.SECRETS] = Gcp.SecretsAdapter;
-adapters[SolutionEnum.STORAGE][ProviderEnum.GCP] = Gcp.StorageAdapter;
-adapters[SolutionEnum.STORAGE][Gcp.SolutionsEnum.STORAGE] = Gcp.StorageAdapter;
+adapters[ProviderEnum.GCP] = GcpAdapters;
+// setup from cloud alias
+adapters[SolutionEnum.CLOUD_PROVIDER][ProviderEnum.GCP] = GcpAdapters[SolutionEnum.CLOUD_PROVIDER];
+adapters[SolutionEnum.SECRETS][ProviderEnum.GCP] = GcpAdapters[SolutionEnum.SECRETS];
+adapters[SolutionEnum.STORAGE][ProviderEnum.GCP] = GcpAdapters[SolutionEnum.STORAGE];
 // adapters[SolutionEnum.EVENTS][ProviderEnum.GCP] = Gcp.EventsAdapter;
+// setup from solution alias
+adapters[SolutionEnum.SECRETS][GcpSolutionsEnum.SECRETS] = GcpAdapters[SolutionEnum.SECRETS];
+adapters[SolutionEnum.STORAGE][GcpSolutionsEnum.STORAGE] = GcpAdapters[SolutionEnum.STORAGE];
 // adapters[SolutionEnum.EVENTS][Gcp.SolutionsEnum.EVENTS] = Gcp.EventsAdapter;
-// adapters[ProviderEnum.GCP][SolutionEnum.EVENTS] = Gcp.EventsAdapter;
 
-// AWS DEPRECATED
-adapters[ProviderEnum.AWSV2] = {};
-adapters[ProviderEnum.AWSV2][SolutionEnum.CLOUD_PROVIDER] = AwsV2.providerConfig;
-adapters[ProviderEnum.AWSV2][SolutionEnum.SECRETS] = AwsV2.SecretsAdapter;
-adapters[ProviderEnum.AWSV2][SolutionEnum.STORAGE] = AwsV2.StorageAdapter;
-adapters[ProviderEnum.AWSV2][SolutionEnum.EVENTS] = AwsV2.EventsAdapter;
-adapters[SolutionEnum.CLOUD_PROVIDER][ProviderEnum.AWSV2] = AwsV2.providerConfig;
-adapters[SolutionEnum.SECRETS][ProviderEnum.AWSV2] = AwsV2.SecretsAdapter;
-adapters[SolutionEnum.SECRETS][AwsV2.SolutionsEnum.SECRETS] = AwsV2.SecretsAdapter;
-adapters[SolutionEnum.STORAGE][ProviderEnum.AWSV2] = AwsV2.StorageAdapter;
-adapters[SolutionEnum.STORAGE][AwsV2.SolutionsEnum.STORAGE] = AwsV2.StorageAdapter;
-adapters[SolutionEnum.EVENTS][ProviderEnum.AWSV2] = AwsV2.EventsAdapter;
-adapters[SolutionEnum.EVENTS][AwsV2.SolutionsEnum.EVENTS] = AwsV2.EventsAdapter;
+// AWS V2
+adapters[ProviderEnum.AWSV2] = AwsV2Adapters;
+// setup from cloud alias
+adapters[SolutionEnum.CLOUD_PROVIDER][ProviderEnum.AWSV2] = AwsV2Adapters[SolutionEnum.CLOUD_PROVIDER];
+adapters[SolutionEnum.SECRETS][ProviderEnum.AWSV2] = AwsV2Adapters[SolutionEnum.SECRETS];
+adapters[SolutionEnum.STORAGE][ProviderEnum.AWSV2] = AwsV2Adapters[SolutionEnum.STORAGE];
+adapters[SolutionEnum.EVENTS][ProviderEnum.AWSV2] = AwsV2Adapters[SolutionEnum.EVENTS];
+// setup from solution alias
+adapters[SolutionEnum.SECRETS][AwsV2SolutionsEnum.SECRETS] = AwsV2Adapters[SolutionEnum.SECRETS];
+adapters[SolutionEnum.STORAGE][AwsV2SolutionsEnum.STORAGE] = AwsV2Adapters[SolutionEnum.STORAGE];
+adapters[SolutionEnum.EVENTS][AwsV2SolutionsEnum.EVENTS] = AwsV2Adapters[SolutionEnum.EVENTS];
 
 // LOCAL
-adapters[ProviderEnum.LOCAL] = {};
-adapters[ProviderEnum.LOCAL][SolutionEnum.CLOUD_PROVIDER] = Local.providerConfig;
-adapters[ProviderEnum.LOCAL][SolutionEnum.SECRETS] = Local.SecretsAdapter;
-adapters[ProviderEnum.LOCAL][SolutionEnum.STORAGE] = Local.StorageAdapter;
-adapters[ProviderEnum.LOCAL][SolutionEnum.EVENTS] = Local.EventsAdapter;
-adapters[SolutionEnum.CLOUD_PROVIDER][ProviderEnum.LOCAL] = Local.providerConfig;
-adapters[SolutionEnum.SECRETS][ProviderEnum.LOCAL] = Local.SecretsAdapter;
-adapters[SolutionEnum.SECRETS][Local.SolutionsEnum.SECRETS] = Local.SecretsAdapter;
-adapters[SolutionEnum.STORAGE][ProviderEnum.LOCAL] = Local.StorageAdapter;
-adapters[SolutionEnum.STORAGE][Local.SolutionsEnum.STORAGE] = Local.StorageAdapter;
-adapters[SolutionEnum.EVENTS][ProviderEnum.LOCAL] = Local.EventsAdapter;
-adapters[SolutionEnum.EVENTS][Local.SolutionsEnum.EVENTS] = Local.EventsAdapter;
+adapters[ProviderEnum.LOCAL] = LocalAdapters;
+// setup from "cloud" alias
+adapters[SolutionEnum.CLOUD_PROVIDER][ProviderEnum.LOCAL] = LocalAdapters[SolutionEnum.CLOUD_PROVIDER];
+adapters[SolutionEnum.SECRETS][ProviderEnum.LOCAL] = LocalAdapters[SolutionEnum.SECRETS];
+adapters[SolutionEnum.STORAGE][ProviderEnum.LOCAL] = LocalAdapters[SolutionEnum.STORAGE];
+adapters[SolutionEnum.EVENTS][ProviderEnum.LOCAL] = LocalAdapters[SolutionEnum.EVENTS];
+// setup from solution alias
+adapters[SolutionEnum.SECRETS][LocalSolutionsEnum.SECRETS] = LocalAdapters[SolutionEnum.SECRETS];
+adapters[SolutionEnum.STORAGE][LocalSolutionsEnum.STORAGE] = LocalAdapters[SolutionEnum.STORAGE];
+adapters[SolutionEnum.EVENTS][LocalSolutionsEnum.EVENTS] = LocalAdapters[SolutionEnum.EVENTS];
 
 // THIRDPARTY
-adapters[SolutionEnum.EVENTS][RabbitMQ.getName()] = RabbitMQ;
-adapters[SolutionEnum.STORAGE][Sftp.getName()] = Sftp;
-adapters[SolutionEnum.STORAGE][Ftp.getName()] = Ftp;
+// setup from solution alias only
+adapters[SolutionEnum.EVENTS][ThirdSolutionsEnum.EVENTS_RABBITMQ] = ThirdAdapters[ThirdSolutionsEnum.EVENTS_RABBITMQ];
+adapters[SolutionEnum.STORAGE][ThirdSolutionsEnum.STORAGE_SFTP] = ThirdAdapters[ThirdSolutionsEnum.STORAGE_SFTP];
+adapters[SolutionEnum.STORAGE][ThirdSolutionsEnum.STORAGE_FTP] = ThirdAdapters[ThirdSolutionsEnum.STORAGE_FTP];
 
 export { adapters };

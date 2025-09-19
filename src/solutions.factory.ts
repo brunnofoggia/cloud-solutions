@@ -1,15 +1,15 @@
-import { SolutionsInterface, SolutionsMapInterface } from './common/interfaces/solutions.interface';
+import { ProviderOptions, SolutionsFactoryOptions, SolutionsInterface, SolutionsMapInterface } from './common/interfaces/solutions.interface';
 import { adapters } from './common/config';
 import { SolutionEnum } from './common/types/solution.enum';
 import { partial } from 'lodash';
 
 export class SolutionsFactory {
-    providerOptions: any = {};
+    providerOptions: Partial<ProviderOptions> = {};
     _solutionsMap: SolutionsMapInterface = {};
     _solutions: SolutionsInterface = {};
 
-    async initialize({ storage = '', events = '', secrets = '', provider = '', providerOptions = {} }) {
-        await this.setOptions(storage, events, secrets, provider, providerOptions);
+    async initialize(options: SolutionsFactoryOptions) {
+        await this.setOptions(options);
         await this.instantiate();
         return this.getAll();
     }
@@ -20,16 +20,16 @@ export class SolutionsFactory {
         }
     }
 
-    async setOptions(storage, events, secrets, provider, providerOptions) {
-        this.providerOptions = providerOptions;
+    async setOptions(options: SolutionsFactoryOptions) {
+        this.providerOptions = options.providerOptions;
 
         // get solutions available into cloud provider
-        await this.setSolutionsByCloudProvider(provider);
+        await this.setSolutionsByCloudProvider(options.provider);
 
         // override solutions by specified ones
-        if (storage) await this.set(SolutionEnum.STORAGE, storage);
-        if (events) await this.set(SolutionEnum.EVENTS, events);
-        if (secrets) await this.set(SolutionEnum.SECRETS, secrets);
+        if (options.storage) await this.set(SolutionEnum.STORAGE, options.storage);
+        if (options.events) await this.set(SolutionEnum.EVENTS, options.events);
+        if (options.secrets) await this.set(SolutionEnum.SECRETS, options.secrets);
     }
 
     async set(solutionType: string, solutionName: string) {

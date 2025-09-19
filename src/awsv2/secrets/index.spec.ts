@@ -1,13 +1,13 @@
 import dotenv from 'dotenv';
-import { ParameterStore } from '.';
+import { AwsV2ParameterStore } from '.';
 import { mockInvalidPath, mockParameter, mockParameterKeys, mockPath, mockSecret } from '@test/mocks/aws/secrets.mock';
 import AWS from 'aws-sdk';
 import { keys, pick } from 'lodash';
 
-dotenv.config({ path: 'test/env/aws/.env' });
+dotenv.config({ path: 'test/env/aws/.env', quiet: true });
 
 describe('Aws Secrets', () => {
-    let secrets: ParameterStore;
+    let secrets: AwsV2ParameterStore;
 
     beforeAll(async () => {
         const providerOptions = {
@@ -15,7 +15,7 @@ describe('Aws Secrets', () => {
             user: process.env.CLOUD_USER,
             pass: process.env.CLOUD_PASS,
         };
-        secrets = new ParameterStore(providerOptions);
+        secrets = new AwsV2ParameterStore(providerOptions);
         await secrets.initialize();
     });
 

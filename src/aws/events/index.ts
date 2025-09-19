@@ -1,14 +1,12 @@
-import { cloneDeep, defaults, defaultsDeep, intersection, keys, omit, pick } from 'lodash';
+import { cloneDeep, defaultsDeep, intersection, keys } from 'lodash';
 import _debug from 'debug';
 const debug = _debug('solutions:events');
 const log = _debug('solutions:essential:events');
 
 import { sleep } from '../../common/utils/index';
-import { EventsInterface } from '../../common/interfaces/events.interface';
+import { EventsInterface, EventsOptionsInterface } from '../../common/interfaces/events.interface';
 import { Events, eventsDefaultOptions } from '../../common/abstract/events';
 import { keyFields, libraries, providerConfig } from '../index';
-
-// let AWS;
 
 export const sqsDefaultOptions = defaultsDeep(
     {
@@ -28,6 +26,7 @@ export const sqsDefaultOptions = defaultsDeep(
     },
     eventsDefaultOptions,
 );
+
 export class SQS extends Events implements EventsInterface {
     protected libraries = libraries;
     public defaultOptions: any = cloneDeep(sqsDefaultOptions);
@@ -38,7 +37,7 @@ export class SQS extends Events implements EventsInterface {
     protected messageSlots = 0;
     protected isProcessingMessage = false;
 
-    async initialize(options: any = {}) {
+    async initialize(options: Partial<EventsOptionsInterface> = {}) {
         await super.initialize(options);
         this.checkOptions();
 
@@ -49,7 +48,7 @@ export class SQS extends Events implements EventsInterface {
         this.listenAll();
     }
 
-    setOptions(options?: any): void {
+    setOptions(options?: Partial<EventsOptionsInterface>): void {
         super.setOptions(options);
 
         if (this.options.fifo) {
@@ -92,17 +91,34 @@ export class SQS extends Events implements EventsInterface {
         return _name;
     }
 
-    async processReceivedMessages() {
+    async listenAll() {
+        await sleep(this.options.listenInterval);
+        const memoryStoreSlots = this.getOptions().maxNumberOfMessages;
+        if (this.queueListeners.length)
+            for (const listen of this.queueListeners) {
+                await this.listen(listen.name, listen.handler);
+
+                if (this.messagesReceived.length >= memoryStoreSlots) break;
+            }
+
+        await this.processReceivedMessages();
+        return this.listenAll();
+    }
+
+    async processReceivedMessages(): Promise<any> {
         this.isProcessingMessage = false;
-        this.messageSlots = this.getOptions().maxNumberOfMessages;
+        // Controle para definir quantas mensagens podem ser processadas simultaneamente
+        let processingSlots = this.getOptions().maxNumberOfSimultaneousMessages;
+
         const promises = [];
         if (this.messagesReceived.length) {
             this.isProcessingMessage = true;
             let message = null;
             while ((message = this.messagesReceived.shift())) {
                 promises.push(this.receiveMessage(message.name, message.handler, message.message, message.options));
-                this.messageSlots--;
-                if (!this.messageSlots) break;
+
+                processingSlots--;
+                if (!processingSlots) break;
             }
         }
 
@@ -111,8 +127,7 @@ export class SQS extends Events implements EventsInterface {
             this.isProcessingMessage = false;
         }
 
-        if (this.messagesReceived.length) this.processReceivedMessages();
-        else this.listenAll();
+        if (this.messagesReceived.length) return this.processReceivedMessages();
     }
 
     checkOptions() {
@@ -133,16 +148,6 @@ export class SQS extends Events implements EventsInterface {
 
             this.queueListeners.push({ name, handler: _handler });
         }
-    }
-
-    async listenAll() {
-        await sleep(this.options.listenInterval);
-        if (this.queueListeners.length)
-            for (const listen of this.queueListeners) {
-                await this.listen(listen.name, listen.handler);
-            }
-
-        this.processReceivedMessages();
     }
 
     buildListenerParams(_name) {

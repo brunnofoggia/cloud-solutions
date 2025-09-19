@@ -10,6 +10,7 @@ export const eventsDefaultOptions = {
     retryInterval: 5000,
     retryLimit: 3,
     maxNumberOfMessages: 1,
+    maxNumberOfSimultaneousMessages: 1,
 };
 
 export abstract class Events extends Solution {

@@ -7,7 +7,7 @@ export interface ReadStreamOptions {
 }
 
 export interface StorageInterface {
-    initialize(options?: any);
+    initialize(options?: StorageOptionsInterface);
     readBinary?(path, options?);
     readContent(path, options?);
     readStream(path, options?: Partial<ReadStreamOptions>): Promise<ReadLineInterface | NodeJS.ReadableStream>;
@@ -37,4 +37,8 @@ export interface CompareSizeOptionsInterface {
 export interface FileInfoInterface {
     contentLength: number;
     etag: any;
+}
+
+export interface StorageOptionsInterface {
+    [key: string]: any;
 }

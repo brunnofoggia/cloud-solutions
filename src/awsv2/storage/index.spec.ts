@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
-dotenv.config({ path: 'test/env/aws/.env' });
+dotenv.config({ path: 'test/env/aws/.env', quiet: true });
 
-import { S3 } from '.';
+import { AwsV2S3 } from '.';
 import AWS from 'aws-sdk';
 import { Interface } from 'readline';
 
@@ -26,7 +26,7 @@ import {
 import { sleep } from '@/common/utils';
 
 describe('Aws Storage', () => {
-    let storage: S3;
+    let storage: AwsV2S3;
 
     beforeAll(async () => {
         const providerOptions = {
@@ -35,7 +35,7 @@ describe('Aws Storage', () => {
             pass: process.env.CLOUD_PASS,
         };
         const Bucket = process.env.STORAGE_BUCKET;
-        storage = new S3(providerOptions);
+        storage = new AwsV2S3(providerOptions);
         await storage.initialize({ Bucket });
     });
 
@@ -62,7 +62,7 @@ describe('Aws Storage', () => {
             checkOptions.shouldBeValid(storage);
         });
         it('should throw error', async () => {
-            await checkOptions.shouldThrowError(S3);
+            await checkOptions.shouldThrowError(AwsV2S3);
         });
     });
 
@@ -183,11 +183,11 @@ describe('Aws Storage', () => {
             expect.assertions(3);
             const { mockCopyFilePath, mockCopyBFilePath } = getVariables(storage);
             await expect(() => storage.copyFile(mockCopyFilePath, mockCopyBFilePath, { clear: true, move: true })).not.toThrow();
-            await sleep(500);
+            await sleep(1000);
             await expect(() => storage.getFileInfo(mockCopyFilePath)).rejects.toThrow();
 
             await storage.deleteFile(mockCopyBFilePath);
-            await sleep(500);
+            await sleep(1000);
             await expect(() => storage.readContent(mockCopyBFilePath)).rejects.toThrow();
         });
     });

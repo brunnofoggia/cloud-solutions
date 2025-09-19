@@ -16,7 +16,15 @@ module.exports = {
     rules: {
         '@typescript-eslint/interface-name-prefix': 0,
         '@typescript-eslint/no-explicit-any': 0,
+        'security/detect-object-injection': 0,
+        '@typescript-eslint/no-empty-interface': 0,
+        '@typescript-eslint/no-unsafe-declaration-merging': 0,
         '@typescript-eslint/no-unused-vars': 0,
+        // promises
+        // 'require-await': 1,
+        // 'promise/always-return': 1,
+        '@typescript-eslint/no-floating-promises': 2,
+        //
         // '@typescript-eslint/explicit-function-return-type': 0,
         // '@typescript-eslint/explicit-module-boundary-types': 0,
         // '@typescript-eslint/no-floating-promises': 0,

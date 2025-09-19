@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import { SecretManager } from '.';
 import { mockBuildedPath, mockFormattedPath, mockInvalidPath, mockPath, mockProjectId, mockSecret } from '@test/mocks/gcp/secrets.mock';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
-dotenv.config({ path: 'test/env/gcp/.env' });
+dotenv.config({ path: 'test/env/gcp/.env', quiet: true });
 
 describe('Gcp Secrets', () => {
     let secrets: SecretManager;

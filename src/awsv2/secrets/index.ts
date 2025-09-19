@@ -6,7 +6,7 @@ import { providerConfig, keyFields, libraries } from '../index';
 import { decryptSecretData } from './functions/kms';
 
 let AWS;
-export class ParameterStore extends Secrets implements SecretsInterface {
+export class AwsV2ParameterStore extends Secrets implements SecretsInterface {
     protected libraries = libraries;
     public defaultOptions: any = {
         cache: true,

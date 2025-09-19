@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-dotenv.config({ path: 'test/env/local/.env' });
+dotenv.config({ path: 'test/env/local/.env', quiet: true });
 
 import { Fs } from '.';
 import path from 'path';

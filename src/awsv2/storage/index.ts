@@ -12,7 +12,7 @@ import { providerConfig, keyFields, libraries } from '../index';
 import { WriteStream } from './writeStream';
 import { copyFileOptionsDefault, CopyFileOptionsInterface } from './interface';
 
-export class S3 extends AStorage implements StorageInterface {
+export class AwsV2S3 extends AStorage implements StorageInterface {
     protected libraries = libraries;
     protected instance;
 
@@ -215,13 +215,13 @@ export class S3 extends AStorage implements StorageInterface {
         const _options: Partial<CopyFileOptionsInterface> = defaultsDeep({}, options, copyFileOptionsDefault);
         const s3 = await this.getInstance(_options);
 
-        const sourceStorage = (_options.storageFrom || this) as S3;
-        const destinationStorage = (_options.storageTo || this) as S3;
+        const sourceStorage = (_options.storageFrom || this) as AwsV2S3;
+        const destinationStorage = (_options.storageTo || this) as AwsV2S3;
 
         const sourceBucket = sourceStorage.getOptions().Bucket;
         const destinationBucket = destinationStorage.getOptions().Bucket;
 
-        if (!(destinationStorage instanceof S3) || !(sourceStorage instanceof S3)) {
+        if (!(destinationStorage instanceof AwsV2S3) || !(sourceStorage instanceof AwsV2S3)) {
             throw new Error('Both storages must be the instance of S3');
         }
 

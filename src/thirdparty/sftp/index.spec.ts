@@ -1,14 +1,16 @@
 import dotenv from 'dotenv';
-dotenv.config({ path: 'test/env/thirdparty/.env' });
+dotenv.config({ path: 'test/env/thirdparty/.env', quiet: true });
 
 import { Sftp } from '.';
 import { Interface } from 'readline';
 import SftpClient from 'ssh2-sftp-client';
 
 const globalTimeout = 15000;
+const lifecycleTimeout = 1000;
 
 const instantiate = async (providerOptions: any = {}, initializeOptions: any = {}) => {
     const storage = new Sftp(providerOptions);
+    initializeOptions.connectionTimeout = -1;
     await storage.initialize(initializeOptions);
     return storage;
 };
@@ -62,13 +64,15 @@ describe('Sftp Storage', () => {
     beforeAll(async () => {
         storage = await mainInstantiate();
         variables = getVariables(storage);
-    }, globalTimeout);
+    }, lifecycleTimeout);
 
     afterAll(async () => {
         try {
             await storage.closeInstance();
+            storage = null;
+            // console.log('jest: SFTP storage instance closed');
         } catch (error) {
-            console.log('Error closing storage instance', error);
+            console.log('jest: Error closing storage instance', error);
         }
     });
 
@@ -340,10 +344,5 @@ describe('Sftp Storage', () => {
             },
             globalTimeout,
         );
-    });
-
-    afterAll(async () => {
-        await storage.closeInstance();
-        storage = null;
     });
 });

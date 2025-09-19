@@ -16,10 +16,11 @@ export class Solution {
     }
 
     setOptions(options: any = {}) {
-        options = omitBy(options, (value) => !value);
+        const emptyCallback = (value) => value === '' || value === null || value === undefined;
+        options = omitBy(options, emptyCallback);
 
         const _options = defaultsDeep({}, options, this.defaultOptions);
-        this.options = omitBy(_options, (value) => !value);
+        this.options = omitBy(_options, emptyCallback);
     }
 
     getOptions() {

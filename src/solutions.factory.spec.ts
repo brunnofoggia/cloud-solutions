@@ -9,7 +9,7 @@ describe('Solutions Factory', () => {
 
     describe('config', () => {
         it('random test to check abstract/config file', async () => {
-            dotenv.config({ path: 'test/env/aws/.env' });
+            dotenv.config({ path: 'test/env/aws/.env', quiet: true });
             const _solutions = new SolutionsFactory();
             const solutionsOptions = {
                 provider: 'aws',
@@ -31,7 +31,7 @@ describe('Solutions Factory', () => {
         });
 
         it('random test to check abstract/config file', async () => {
-            dotenv.config({ path: 'test/env/aws/.env' });
+            dotenv.config({ path: 'test/env/aws/.env', quiet: true });
             const _solutions = new SolutionsFactory();
             const solutionsOptions = {
                 provider: 'aws',

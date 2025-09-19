@@ -1,0 +1,46 @@
+{
+    "Global": {
+        "Chroot": {
+            "Directory": "%h",
+            "StartPath": "sftp"
+        },
+        "Directories": [
+            "sftp"
+        ]
+    },
+    "Users": [
+        {
+            "Username": "demo",
+            "Password": "1234",
+            "PublicKeys": [
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBcl6HWaQ8eYupQTPE0MwisjpdD9Tx8Z2bKN4rtaaGVi another"
+            ],
+            "UID": 1001,
+            "GID": 1001
+        },
+        {
+            "Username": "keysonly",
+            "Password": null,
+            "PublicKeys": [
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBcl6HWaQ8eYupQTPE0MwisjpdD9Tx8Z2bKN4rtaaGVi another"
+            ],
+            "UID": 1002,
+            "GID": 1002
+        },
+        {
+            "Username": "keypassphrase",
+            "Password": null,
+            "PublicKeys": [
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHWPmnA5yB3sczdcrtsGDIFTJkkW3ATT5fMzVd7R3XxG keypassphrase"
+            ],
+            "UID": 1003,
+            "GID": 1003
+        },
+        {
+            "Username": "guest",
+            "Password": "guest",
+            "UID": 1004,
+            "GID": 1004
+        }
+    ]
+}

@@ -5,7 +5,7 @@ import { SSMClient } from '@aws-sdk/client-ssm';
 import { ParameterStore } from '.';
 import { mockInvalidPath, mockParameter, mockParameterKeys, mockPath, mockSecret } from '@test/mocks/aws/secrets.mock';
 
-dotenv.config({ path: 'test/env/aws/.env' });
+dotenv.config({ path: 'test/env/aws/.env', quiet: true });
 
 describe('Aws Secrets', () => {
     let secrets: ParameterStore;

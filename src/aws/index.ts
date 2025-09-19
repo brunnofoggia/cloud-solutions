@@ -1,7 +1,8 @@
 import { S3 } from './storage/index';
 import { ParameterStore } from './secrets/index';
 import { SQS } from './events/index';
-import { SolutionsEnum } from './solutions';
+import { SolutionsEnum } from './solutions.interface';
+import { SolutionEnum } from '../common/types/solution.enum';
 
 export const StorageAdapter = S3;
 export const SecretsAdapter = ParameterStore;
@@ -122,6 +123,13 @@ export const libraries = {
     },
 };
 
+const Adapters: any = {};
+Adapters[SolutionEnum.CLOUD_PROVIDER] = providerConfig;
+Adapters[SolutionEnum.SECRETS] = SecretsAdapter;
+Adapters[SolutionEnum.STORAGE] = StorageAdapter;
+Adapters[SolutionEnum.EVENTS] = EventsAdapter;
+
+export { SolutionsEnum, Adapters };
 export default {
     StorageAdapter,
     SecretsAdapter,
