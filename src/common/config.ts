@@ -13,6 +13,7 @@ adapters[SolutionEnum.CLOUD_PROVIDER] = {};
 adapters[SolutionEnum.SECRETS] = {};
 adapters[SolutionEnum.STORAGE] = {};
 adapters[SolutionEnum.EVENTS] = {};
+adapters[SolutionEnum.AUTH] = {};
 
 // AWS V3
 adapters[ProviderEnum.AWS] = AwsAdapters;
@@ -67,5 +68,6 @@ adapters[SolutionEnum.EVENTS][LocalSolutionsEnum.EVENTS] = LocalAdapters[Solutio
 adapters[SolutionEnum.EVENTS][ThirdSolutionsEnum.EVENTS_RABBITMQ] = ThirdAdapters[ThirdSolutionsEnum.EVENTS_RABBITMQ];
 adapters[SolutionEnum.STORAGE][ThirdSolutionsEnum.STORAGE_SFTP] = ThirdAdapters[ThirdSolutionsEnum.STORAGE_SFTP];
 adapters[SolutionEnum.STORAGE][ThirdSolutionsEnum.STORAGE_FTP] = ThirdAdapters[ThirdSolutionsEnum.STORAGE_FTP];
+adapters[SolutionEnum.AUTH][ThirdSolutionsEnum.AUTH_KEYCLOAK] = ThirdAdapters[ThirdSolutionsEnum.AUTH_KEYCLOAK];
 
 export { adapters };

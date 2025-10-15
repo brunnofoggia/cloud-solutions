@@ -207,7 +207,8 @@ export class SQS extends Events implements EventsInterface {
             QueueUrl: queueUrl,
             ...this.options.SendMessageAttributes,
         };
-        const command = new SendMessageCommand(params);
+
+        const command = this.buildCommand(SendMessageCommand, params);
 
         try {
             const data = await instance.send(command);
@@ -216,6 +217,10 @@ export class SQS extends Events implements EventsInterface {
             debug('Erro ao enviar mensagem:', error.message);
             throw error;
         }
+    }
+
+    buildCommand(command, params) {
+        return new command(params);
     }
 
     async ack(name, message, options) {

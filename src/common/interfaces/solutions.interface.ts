@@ -6,6 +6,7 @@ import { SolutionsEnum as ThirdSolutionsEnum } from '../../thirdparty/solutions.
 
 import { ProviderEnum } from '../types/provider.enum';
 import { EventsInterface } from './events.interface';
+import { IamInterface } from './iam.interface';
 import { SecretsInterface } from './secrets.interface';
 import { StorageInterface } from './storage.interface';
 
@@ -13,18 +14,21 @@ export interface SolutionsInterface {
     storage?: StorageInterface;
     secrets?: SecretsInterface;
     events?: EventsInterface;
+    auth?: IamInterface;
 }
 
 export interface SolutionsMapInterface {
     storage?: any;
     secrets?: any;
     events?: any;
+    auth?: any;
 }
 
 export interface SolutionsFactoryOptions {
     storage?: ProviderEnum | StorageEnum | string;
     events?: ProviderEnum | EventsEnum | string;
     secrets?: ProviderEnum | SecretsEnum | string;
+    auth?: ProviderEnum | string;
     provider?: ProviderEnum | string;
     providerOptions?: ProviderOptions;
 }

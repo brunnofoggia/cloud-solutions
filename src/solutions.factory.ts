@@ -30,6 +30,7 @@ export class SolutionsFactory {
         if (options.storage) await this.set(SolutionEnum.STORAGE, options.storage);
         if (options.events) await this.set(SolutionEnum.EVENTS, options.events);
         if (options.secrets) await this.set(SolutionEnum.SECRETS, options.secrets);
+        if (options.auth) await this.set(SolutionEnum.AUTH, options.auth);
     }
 
     async set(solutionType: string, solutionName: string) {

@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-dotenv.config({ path: 'test/env/thirdparty/.env', quiet: true });
+dotenv.config({ path: 'test/env/thirdparty/ssl-sftp/.env', quiet: true });
 
 import { Sftp } from '.';
 import { Interface } from 'readline';

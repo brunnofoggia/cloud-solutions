@@ -1,6 +1,16 @@
 export default {
     /* presets: https://kulshekhar.github.io/ts-jest/docs/next/getting-started/presets */
+    moduleFileExtensions: ['js', 'json', 'ts'],
     preset: 'ts-jest/presets/js-with-babel',
+    rootDir: 'src',
+    modulePaths: ['<rootDir>'],
+    testRegex: '\\.spec\\.ts$',
+    moduleNameMapper: {
+        '@/(.*)': '<rootDir>/$1',
+        '@test/(.*)': '<rootDir>/../test/$1',
+        // esm config
+        '^(\\.{1,2}/.*)\\.js$': '$1',
+    },
     transform: {
         '^.+\\.jsx?$': [
             'babel-jest',
@@ -40,16 +50,6 @@ export default {
                 },
             },
         ],
-    },
-    moduleFileExtensions: ['js', 'json', 'ts'],
-    rootDir: 'src',
-    modulePaths: ['<rootDir>'],
-    testRegex: '\\.spec\\.ts$',
-    moduleNameMapper: {
-        '@/(.*)': '<rootDir>/$1',
-        '@test/(.*)': '<rootDir>/../test/$1',
-        // esm config
-        '^(\\.{1,2}/.*)\\.js$': '$1',
     },
 
     // transformIgnorePatterns: ['/node_modules/(.*)'], // ignore list
