@@ -2,7 +2,7 @@ import { SolutionEnum } from './types/solution.enum';
 import { ProviderEnum } from './types/provider.enum';
 
 import { Adapters as AwsV2Adapters, SolutionsEnum as AwsV2SolutionsEnum } from '../awsv2/index';
-import { Adapters as AwsAdapters, SolutionsEnum as AwsSolutionsEnum } from '../aws/index';
+import { Adapters as AwsAdapters, SolutionsEnum as AwsSolutionsEnum } from '../aws/adapters';
 import { Adapters as GcpAdapters, SolutionsEnum as GcpSolutionsEnum } from '../gcp/index';
 import { Adapters as LocalAdapters, SolutionsEnum as LocalSolutionsEnum } from '../local/index';
 import { Adapters as ThirdAdapters, SolutionsEnum as ThirdSolutionsEnum } from '../thirdparty/index';

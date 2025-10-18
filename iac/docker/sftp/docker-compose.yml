@@ -4,7 +4,10 @@ services:
         image: emberstack/sftp:latest
         container_name: sftp-server
         ports:
-            - '2222:22'
+            - '2220:22'
         volumes:
+            # 1) Config do servidor (somente senha)
+            - ./../../../tmp/sftp/sftp.json:/app/config/sftp.json:ro
+            # 2) Pasta do usuário 'demo'
             - ./../../../tmp/sftp/data:/home/demo/sftp
         restart: unless-stopped

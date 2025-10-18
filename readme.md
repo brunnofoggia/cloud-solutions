@@ -4,16 +4,18 @@ This project is meant to ease the pain of migrating from one solution to another
 
 ## Changelog
 
-* Version 2.3
+* Version 4
     * Solutions mapped
         * Events
         * Storage
         * Secrets
+        * Authentication
 
     * Factories available
         * Events: AWS: SQS, ThirdParty: RabbitMQ
         * Storage: AWS: S3, GCP: Storage, ThirdParty: SFTP, Local: FS
         * Secrets: AWS: ParameterStore, GCP: SecretManager, Local: Env
+        * Authentication: AWS: Cognito, ThirdParty: Keycloak
 
 ## Usage
 
@@ -26,7 +28,47 @@ I personally use dotenv library with .env file to map config variables and on so
 
 ### Configuration
 
-Sample explained by a simple procedural code: 
+#### 1. How to use a single solution
+
+This is the way you should implement so you can change storage provider just by changing environment variables when needed. 
+
+```javascript
+import { SolutionsFactory, StorageInterface } from 'cloud-solutions-factory';
+
+export const getStorage = async (): Promise<StorageInterface> => {
+    // instantiate the factory
+    const solutions = new SolutionsFactory();
+    // describe what solutions you need
+    const { storage } = await solutions.initialize({
+        storage: process.env.STORAGE_PROVIDER,
+        // provider options are optional if you specify everything on each solution
+        // when you are using only one solution is simpler to set them after into solution "initialize" method
+        providerOptions: {}
+    });
+
+    // configure what functionalities you need
+    const { storage } = await solutions.initialize({
+        storage: process.env.STORAGE_PROVIDER,
+    });
+
+    // s3 storage must receive the name of the bucket
+    await storage.initialize({
+        // provider options
+        region: process.env.CLOUD_REGION,
+        user: process.env.CLOUD_USER,
+        pass: process.env.CLOUD_PASS,
+        // bucket name
+        Bucket: process.env.STORAGE_BUCKET,
+    });
+
+    return storage;
+};
+
+```
+
+#### 2. How to use multiple solutions
+
+Sample explained by a simple linear code: 
 
 ```javascript
 import { SolutionsFactory, EventsInterface, SolutionsInterface } from 'cloud-solutions-factory';

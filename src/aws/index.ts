@@ -1,13 +1,3 @@
-import { S3 } from './storage/index';
-import { ParameterStore } from './secrets/index';
-import { SQS } from './events/index';
-import { SolutionsEnum } from './solutions.interface';
-import { SolutionEnum } from '../common/types/solution.enum';
-
-export const StorageAdapter = S3;
-export const SecretsAdapter = ParameterStore;
-export const EventsAdapter = SQS;
-
 // export const keyFields = ['accessKeyId', 'secretAccessKey', 'region'];
 export const keyFields = { user: 'accessKeyId', pass: 'secretAccessKey', region: 'region' };
 
@@ -123,18 +113,7 @@ export const libraries = {
     },
 };
 
-const Adapters: any = {};
-Adapters[SolutionEnum.CLOUD_PROVIDER] = providerConfig;
-Adapters[SolutionEnum.SECRETS] = SecretsAdapter;
-Adapters[SolutionEnum.STORAGE] = StorageAdapter;
-Adapters[SolutionEnum.EVENTS] = EventsAdapter;
-
-export { SolutionsEnum, Adapters };
 export default {
-    StorageAdapter,
-    SecretsAdapter,
-    EventsAdapter,
-    SolutionsEnum,
     providerConfig,
     libraries,
 };

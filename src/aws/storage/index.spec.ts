@@ -24,6 +24,7 @@ import {
     getFileInfo,
 } from '@/common/abstract/storage.test';
 import { sleep } from '@/common/utils';
+import { SolutionsFactory } from '@/solutions.factory';
 
 describe('Aws Storage', () => {
     let storage: S3;
@@ -42,6 +43,24 @@ describe('Aws Storage', () => {
     describe('to be defined', () => {
         it('storage', async () => {
             toBeDefined.storage(storage);
+        });
+    });
+
+    describe('instantiate from solution factory', () => {
+        it('storage only', async () => {
+            const solutions = new SolutionsFactory();
+            const { storage } = await solutions.initialize({
+                storage: 's3',
+            });
+
+            await storage.initialize({
+                region: process.env.CLOUD_REGION,
+                user: process.env.CLOUD_USER,
+                pass: process.env.CLOUD_PASS,
+                Bucket: process.env.STORAGE_BUCKET,
+            });
+
+            await getInstance.shouldBeInstanceOf(storage, S3Client);
         });
     });
 

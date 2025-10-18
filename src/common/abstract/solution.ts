@@ -43,7 +43,7 @@ export class Solution {
     }
 
     isInitialized() {
-        if (!this.options.initialized) throw new Error('Nao se esqueça de executar o método "initialized" de cada solução da fábrica');
+        if (!this.options.initialized) throw new Error('Nao se esqueça de executar o método "initialize" para cada solução da fábrica');
     }
 
     mergeProviderOptions(options = {}, keyFields) {

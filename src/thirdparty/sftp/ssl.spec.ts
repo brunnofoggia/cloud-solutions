@@ -4,6 +4,26 @@ dotenv.config({ path: 'test/env/thirdparty/ssl-sftp/.env', quiet: true });
 import { Sftp } from '.';
 import SftpClient from 'ssh2-sftp-client';
 
+// import { WriteStream } from './writeStream';
+import {
+    checkPathExists,
+    checkOptions,
+    createInstance,
+    deleteDirectory,
+    deleteFile,
+    getDirectoryContentLength,
+    getInstance,
+    readContent,
+    readDirectory,
+    readStream,
+    sendContent,
+    sendStream,
+    toBeDefined,
+    getVariables,
+    getFileInfo,
+} from '@/common/abstract/storage.test';
+import { WriteStream } from './writeStream';
+
 const globalTimeout = 15000;
 const lifecycleTimeout = 2000;
 
@@ -39,25 +59,6 @@ const mainInstantiate = async (options: any = {}) => {
 
     return await instantiate(providerOptions, initializeOptions);
 };
-// import { WriteStream } from './writeStream';
-import {
-    checkPathExists,
-    checkOptions,
-    createInstance,
-    deleteDirectory,
-    deleteFile,
-    getDirectoryContentLength,
-    getInstance,
-    readContent,
-    readDirectory,
-    readStream,
-    sendContent,
-    sendStream,
-    toBeDefined,
-    getVariables,
-    getFileInfo,
-} from '@/common/abstract/storage.test';
-import { WriteStream } from './writeStream';
 
 describe('Sftp Storage', () => {
     let storage: Sftp;

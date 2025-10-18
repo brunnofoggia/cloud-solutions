@@ -105,7 +105,7 @@ describe('KeycloakProvider', () => {
             provider.setupIntegration(mockOptions);
             jest.spyOn(Object.getPrototypeOf(Object.getPrototypeOf(provider)), 'authReqOptionBody').mockReturnValue({});
 
-            const body = provider.authReqOptionBody();
+            const body = provider.authReqOptionBody({});
 
             expect(body).toEqual({
                 client_id: 'test-client',

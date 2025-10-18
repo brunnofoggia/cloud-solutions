@@ -86,12 +86,12 @@ export class KeycloakProvider extends BearerApi {
         return body;
     }
 
-    authReqOptionBody(): any {
+    authReqOptionBody(options: any): any {
         const body: any = {
             ...this.authClientReqOptionBody(),
             grant_type: this.authGrantType,
             scope: this.scope,
-            ...super.authReqOptionBody(),
+            ...super.authReqOptionBody(options),
         };
 
         return body;

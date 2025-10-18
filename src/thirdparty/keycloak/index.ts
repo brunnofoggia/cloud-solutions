@@ -32,6 +32,7 @@ export class Keycloak extends Iam implements IamInterface {
 
     // #region core methods
     setToken(token: string) {
+        this.checkToken(token);
         this.provider.setToken(token);
         this.userInfo = null;
     }

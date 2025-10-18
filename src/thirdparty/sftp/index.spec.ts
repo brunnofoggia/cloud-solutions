@@ -7,6 +7,7 @@ import SftpClient from 'ssh2-sftp-client';
 
 const globalTimeout = 15000;
 const lifecycleTimeout = 1000;
+const beforeAllTimeout = 2000;
 
 const instantiate = async (providerOptions: any = {}, initializeOptions: any = {}) => {
     const storage = new Sftp(providerOptions);
@@ -64,7 +65,7 @@ describe('Sftp Storage', () => {
     beforeAll(async () => {
         storage = await mainInstantiate();
         variables = getVariables(storage);
-    }, lifecycleTimeout);
+    }, beforeAllTimeout);
 
     afterAll(async () => {
         try {
@@ -100,11 +101,12 @@ describe('Sftp Storage', () => {
         it(
             'should connect successfully',
             async () => {
+                // was storage C
                 const instance = await createInstance.shouldBeInstanceOf(storage, SftpClient, {
-                    host: process.env.STORAGE_C_HOST,
-                    port: process.env.STORAGE_C_PORT,
-                    user: process.env.STORAGE_C_USER,
-                    pass: process.env.STORAGE_C_PASS,
+                    host: process.env.STORAGE_A_HOST,
+                    port: process.env.STORAGE_A_PORT,
+                    user: process.env.STORAGE_A_USER,
+                    pass: process.env.STORAGE_A_PASS,
                 });
                 await storage._closeInstance(instance);
             },
