@@ -12,7 +12,16 @@ export class Keycloak extends Iam implements IamInterface {
     defaultOptions: any = {};
     instance: any;
 
-    protected libraries: any = {};
+    protected libraries: any = {
+        uuidValidate: {
+            path: 'uuid',
+            key: 'validate',
+        },
+        uuidVersion: {
+            path: 'uuid',
+            key: 'version',
+        },
+    };
 
     provider: KeycloakProvider;
     userInfo;
@@ -27,6 +36,10 @@ export class Keycloak extends Iam implements IamInterface {
     async initializeProvider(options: Partial<KeycloakProviderOptions> = {}) {
         this.provider = new KeycloakProvider();
         await this.provider.initialize(options);
+
+        const validate = this.getLibrary('uuidValidate');
+        const version = this.getLibrary('uuidVersion');
+        this.provider.uuid = { validate, version };
     }
     // #endregion
 

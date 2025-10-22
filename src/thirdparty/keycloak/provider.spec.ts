@@ -1,6 +1,7 @@
 import '@test/common/jest.test';
 import dotenv from 'dotenv';
 import { cloneDeep, isPlainObject } from 'lodash';
+import { validate, version } from 'uuid';
 
 import { KeycloakProvider, KeycloakProviderDefaultOptions } from './provider';
 import {
@@ -39,6 +40,7 @@ describe('KeycloakProvider', () => {
         jest.clearAllMocks();
         keycloakProvider = new KeycloakProvider();
         await keycloakProvider.initialize(cloneDeep(testConfig));
+        keycloakProvider.uuid = { validate, version };
     });
 
     describe('Inicialização', () => {
@@ -185,16 +187,18 @@ describe('KeycloakProvider', () => {
         });
 
         it('deve simular busca de role por nome', async () => {
-            expect.assertions(3);
+            expect.assertions(4);
 
             mockHttp && (keycloakProvider._http = jest.fn().mockResolvedValueOnce(mockAuthenticated));
             await keycloakProvider.auth({ username: testConfig.username, password: testConfig.password });
 
             mockHttp && (keycloakProvider._http = jest.fn().mockResolvedValueOnce({ data: mockRoleId, status: 204 }));
-            const result = await keycloakProvider.findRoleDataByName('offline_access');
+            const result = await keycloakProvider.findRoleDataByName(mockRoleId.name);
+            console.log('result', result);
 
             expect(result.data).toBeDefined();
             expect(result.data.name).toBe('offline_access');
+            expect(result.data.id).toBeDefined();
             expect(keycloakProvider.uuidCheck(result.data.id)).toBe(true);
         });
 

@@ -1,7 +1,8 @@
+import _debug from 'debug';
+const debug = _debug('solutions:auth:keycloak');
 import { BearerApi } from 'api-link-aio';
 import { AxiosResponse } from 'axios';
 import { defaultsDeep, get, isPlainObject, omit, size } from 'lodash';
-import { validate as uuidValidate, version as uuidVersion } from 'uuid';
 
 import { Err } from '../../common/utils/error';
 import { ERROR_CODE } from './error';
@@ -29,6 +30,8 @@ export class KeycloakProvider extends BearerApi {
     authResRefreshTokenField: string;
     refreshToken: string;
     realm: string;
+
+    uuid: { validate(value: string): boolean; version(value: string): number };
 
     _defaultHeaders: any = {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -217,7 +220,6 @@ export class KeycloakProvider extends BearerApi {
     async registerUser(userData: KeycloakRegisterUser): Promise<AxiosResponse<any> & { userId?: string }> {
         userData.enabled = userData.enabled ?? true;
 
-        console.log('is authenticated before registerUser:', this._isAuthenticated(), 'token:', this.token);
         const adminUrl = this.buildAdminBaseUrl(this.adminBaseUrl, this.realm);
         const registerUrl = [adminUrl, 'users'].join('/');
         const response: AxiosResponse<any> & { userId?: string } = await this.post(registerUrl, userData, { headers: this._adminDefaultHeaders });
@@ -250,8 +252,6 @@ export class KeycloakProvider extends BearerApi {
     async findUserIdByUsername(userName: string): Promise<string> {
         const userInfo = (await this.searchUsersByUsername(userName)).data;
         if (!isArray(userInfo) || userInfo.length === 0) {
-            console.log(userInfo);
-
             throw new Err('User not found', ERROR_CODE.KC_USER_NOT_FOUND);
         }
 
@@ -283,12 +283,12 @@ export class KeycloakProvider extends BearerApi {
     uuidCheck(value: string): boolean {
         try {
             if (value) {
-                if (uuidValidate(value) && uuidVersion(value) === 4) {
+                if (this.uuid.validate(value) && this.uuid.version(value) === 4) {
                     return true;
                 }
             }
         } catch (err) {
-            console.log('UUID check error:', err);
+            debug('UUID check error:', err);
         }
         return false;
     }
