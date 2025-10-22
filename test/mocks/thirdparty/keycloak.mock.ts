@@ -24,6 +24,21 @@ export const mockAuthenticated = {
     },
 };
 
+export const mockAuthenticatedAgain = {
+    data: {
+        ...mockAuthenticated.data,
+        access_token:
+            'eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJuQVhaV2l0SzNWMVdLNEFqWlMyd3lQZ0hmZDhJVWpJX2V0alpNb0xONjZJIn0.eyJleHAiOjE3NjExODMyOTcsImlhdCI6MTc2MTE0MDA5NywianRpIjoiODdkNDljMGUtYzQ1YS00NTM1LWI1ZmUtZTA5MTA2NzMyZTk5IiwiaXNzIjoiaHR0cHM6Ly9hdXRoLmhtbC5jYnlrLmNvbS9yZWFsbXMvYmF1ay1teC1obWwiLCJhdWQiOlsicmVhbG0tbWFuYWdlbWVudCIsImFjY291bnQiXSwic3ViIjoiZDdiYTE1MmQtYjM5Ny00MGM2LTljZTQtMTNlNTNmMzc1YjA4IiwidHlwIjoiQmVhcmVyIiwiYXpwIjoibXgtYXBpIiwic2lkIjoiNzA0YWI5MjItNDI0Yy00NzhjLTk2MTYtMDAwOWYzODhjYjcyIiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIvKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsibTAiLCJidXNpbmVzcyIsIm14X2FkbWluIiwib2ZmbGluZV9hY2Nlc3MiLCJkZWZhdWx0LXJvbGVzLWJhdWstbXgtaG1sIiwidW1hX2F1dGhvcml6YXRpb24iLCJwb3J0YWwiXX0sInJlc291cmNlX2FjY2VzcyI6eyJyZWFsbS1tYW5hZ2VtZW50Ijp7InJvbGVzIjpbInZpZXctaWRlbnRpdHktcHJvdmlkZXJzIiwidmlldy1yZWFsbSIsIm1hbmFnZS1pZGVudGl0eS1wcm92aWRlcnMiLCJpbXBlcnNvbmF0aW9uIiwicmVhbG0tYWRtaW4iLCJjcmVhdGUtY2xpZW50IiwibWFuYWdlLXVzZXJzIiwicXVlcnktcmVhbG1zIiwidmlldy1hdXRob3JpemF0aW9uIiwicXVlcnktY2xpZW50cyIsInF1ZXJ5LXVzZXJzIiwibWFuYWdlLWV2ZW50cyIsIm1hbmFnZS1yZWFsbSIsInZpZXctZXZlbnRzIiwidmlldy11c2VycyIsInZpZXctY2xpZW50cyIsIm1hbmFnZS1hdXRob3JpemF0aW9uIiwibWFuYWdlLWNsaWVudHMiLCJxdWVyeS1ncm91cHMiXX0sImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZW1haWwiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkJydW5vIEZvZ2dpYSIsInByZWZlcnJlZF91c2VybmFtZSI6ImJydW5vLmZvZ2dpYUBiYXVrLmNvbS5iciIsImdpdmVuX25hbWUiOiJCcnVubyIsImZhbWlseV9uYW1lIjoiRm9nZ2lhIiwiZW1haWwiOiJicnVuby5mb2dnaWFAYmF1ay5jb20uYnIifQ.gLMexifDp8bYL4v8jWo6bcVfymoMjD1cbck2SGb9suI6dJx8XytkIzLDj3TymKIWK35nyU6dW6gvXPQKWRj8D0JRC9kfQE8YqKtxio0iboCFeqHTNGlyC_0X2WlbY-mNwU-r6ntH6fWBY4BN2_IjxRRvRY4-32_Zxyf5Ia5kMfaJuOcUJwEurngjFLT8TXHMzJI5pJrpa3IBbH9BWhbr9nP4YEHx-f_t3lNhcZDVxbJEiNzQ0s3W4TVb9QY3VynrytBOPL92KP2gWnpLzLuUlKAAU18t9EiokDnbCJgMqnvAAAB78BCw7CBFckD-S4e0XIWvYwbkkLgytI8WiWxjzg',
+    },
+    headers,
+    status: 200,
+    statusText: 'OK',
+    request: {},
+    config: {
+        headers,
+    },
+};
+
 export const mockUserInfo = {
     data: {
         exp: 1760130669,
@@ -46,7 +61,58 @@ export const mockUserInfo = {
         email: 'bruno.foggia@email.com.br',
         client_id: 'mx-api',
         username: 'bruno.foggia@email.com.br',
+        aliasForTesting: 'bruno.foggia',
         token_type: 'Bearer',
         active: true,
     },
+};
+
+export const mockUserSearch = {
+    id: 'd7ba152d-b397-40c6-9ce4-13e53f375b08',
+    username: 'bruno.foggia@email.com.br',
+};
+
+export const mockRoleList = [
+    {
+        name: 'offline_access',
+    },
+];
+
+export const mockRoleId = {
+    id: 'ed0ad427-5044-40ab-8d9b-0b256d869eaa',
+    name: 'offline_access',
+};
+
+export const mockRoleSearch = {
+    id: 'ed0ad427-5044-40ab-8d9b-0b256d869eaa',
+    name: 'offline_access',
+    description: '${role_offline-access}',
+    composite: false,
+    clientRole: false,
+    containerId: '82254349-583c-4f35-bd0a-2236f3317036',
+    attributes: {},
+};
+
+export const mockUserRegistry = {
+    username: 'user@test.com',
+    email: 'user@test.com',
+    firstName: 'Test',
+    lastName: 'User',
+    enabled: true,
+    emailVerified: true,
+};
+
+export const mockUserRegistered = {
+    status: 201,
+    headers: {
+        location: 'http://auth.hml.cbyk.com/admin/realms/bauk-mx-hml/users/d7ba152d-b397-40c6-9ce4-13e53f375b08',
+    },
+};
+
+export const mockFindUserIdByUsername = {
+    data: [
+        {
+            id: 'd7ba152d-b397-40c6-9ce4-13e53f375b08',
+        },
+    ],
 };

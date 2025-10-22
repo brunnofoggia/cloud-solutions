@@ -10,6 +10,7 @@ describe('KeycloakProvider', () => {
         provider = new KeycloakProvider();
         mockOptions = {
             baseUrl: 'https://keycloak.example.com',
+            adminBaseUrl: 'https://keycloak.example.net',
             realm: 'test-realm',
             authPath: '/protocol/openid-connect/token',
             authResTokenField: 'access_token',
@@ -72,7 +73,9 @@ describe('KeycloakProvider', () => {
         it('should setup integration with provided options', () => {
             provider.setupIntegration(mockOptions);
 
-            expect(provider.baseUrl).toBe('https://keycloak.example.com/realms/test-realm');
+            expect(provider.realm).toBe('test-realm');
+            expect(provider.baseUrl).toBe('https://keycloak.example.com');
+            expect(provider.getRequestBasePath()).toBe('https://keycloak.example.com/realms/test-realm');
             expect(provider.clientId).toBe('test-client');
             expect(provider.clientSecret).toBe('test-secret');
             expect(provider.authPath).toBe('/protocol/openid-connect/token');

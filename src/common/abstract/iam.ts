@@ -9,7 +9,7 @@ export const IamDefaultOptions = {};
 export abstract class Iam extends Solution {
     public defaultOptions: any = IamDefaultOptions;
 
-    checkToken(token: string): void {
+    async checkToken(token: string): Promise<void> {
         const hasContent = !!token && token.trim().length > 0;
         if (!hasContent) throw new Err('Token is empty', ERROR_CODE.AUTH_TOKEN_EMPTY);
 

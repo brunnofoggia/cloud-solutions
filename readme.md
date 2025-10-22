@@ -15,7 +15,7 @@ This project is meant to ease the pain of migrating from one solution to another
         * Events: AWS: SQS, ThirdParty: RabbitMQ
         * Storage: AWS: S3, GCP: Storage, ThirdParty: SFTP, Local: FS
         * Secrets: AWS: ParameterStore, GCP: SecretManager, Local: Env
-        * Authentication: AWS: Cognito, ThirdParty: Keycloak
+        * Authentication: AWS: Cognito (soon), ThirdParty: Keycloak
 
 ## Usage
 

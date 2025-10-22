@@ -1,3 +1,6 @@
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
 export default {
     /* presets: https://kulshekhar.github.io/ts-jest/docs/next/getting-started/presets */
     moduleFileExtensions: ['js', 'json', 'ts'],
@@ -6,12 +9,20 @@ export default {
     modulePaths: ['<rootDir>'],
     testRegex: '\\.spec\\.ts$',
     moduleNameMapper: {
+        uuid: require.resolve('uuid'),
         '@/(.*)': '<rootDir>/$1',
         '@test/(.*)': '<rootDir>/../test/$1',
         // esm config
         '^(\\.{1,2}/.*)\\.js$': '$1',
     },
     transform: {
+        '^.+node_modules/uuid/.+\\.js$': [
+            'babel-jest',
+            {
+                presets: [['@babel/preset-env', { targets: { node: 'current' } }]],
+                sourceType: 'unambiguous',
+            },
+        ],
         '^.+\\.jsx?$': [
             'babel-jest',
             {
@@ -50,8 +61,29 @@ export default {
                 },
             },
         ],
+        // uuid: [
+        //     'ts-jest',
+        //     {
+        //         useESM: true,
+        //         tsconfig: {
+        //             allowSyntheticDefaultImports: true,
+        //             declaration: true,
+        //             esModuleInterop: true,
+        //             lib: ['esnext'],
+        //             module: 'es2020',
+        //             moduleResolution: 'node',
+        //             outDir: 'dist',
+        //             sourceMap: true,
+        //             strictNullChecks: true,
+        //             target: 'ES2020',
+        //             strictNullChecks: false,
+        //             noImplicitAny: false,
+        //         },
+        //     },
+        // ],
     },
 
+    transformIgnorePatterns: ['/node_modules/(?!uuid/)'],
     // transformIgnorePatterns: ['/node_modules/(.*)'], // ignore list
     // transformIgnorePatterns: ['/node_modules/(?!package-name)(.*)'], // ignore all but one
 

@@ -2,6 +2,7 @@ import { IamResponse } from '../../common/interfaces/iam.interface';
 
 export interface KeycloakProviderOptions {
     baseUrl: string;
+    adminBaseUrl: string;
     authPath?: string;
     introspectPath?: string;
     realm: string;
@@ -25,4 +26,24 @@ export interface KeycloakResponse extends IamResponse {
     scope: string;
     refreshExpiresIn: number;
     refreshToken: string;
+}
+
+export interface KeycloakRegisterUser {
+    username: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    enabled: boolean;
+    emailVerified: boolean;
+}
+
+export interface KeycloakRegisterPassword {
+    type: string;
+    temporary: boolean;
+    value: string;
+}
+
+export interface KeyCloakRegisterRole {
+    id: string;
+    name: string;
 }
